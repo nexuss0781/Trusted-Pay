@@ -1,5 +1,5 @@
 from telegram import Update, Bot
-from auth import get_user_by_chat_id, unlink_telegram
+from auth import get_user_by_chat_id, link_telegram, unlink_telegram, authenticate_user
 import os
 
 BASE_URL = os.environ.get("BASE_URL", "https://trusted.vercel.app")
@@ -16,7 +16,7 @@ async def handle_update(update: Update, bot: Bot):
                 "Welcome to Trusted Bot!\n\n"
                 "Available commands:\n"
                 "/login - Connect your Telegram to your account\n"
-                "/link <email> - Link this chat to your account\n"
+                "/link <email> <password> - Link this chat to your account\n"
                 "/logoff - Disconnect Telegram from your account\n"
                 "/help - Show this message"
             )
@@ -28,7 +28,7 @@ async def handle_update(update: Update, bot: Bot):
                 "Available commands:\n"
                 "/start - Welcome message\n"
                 "/login - Get login link\n"
-                "/link <email> - Link this chat to your account\n"
+                "/link <email> <password> - Link this chat to your account\n"
                 "/logoff - Disconnect Telegram from your account\n"
                 "/help - This message"
             )
@@ -38,39 +38,36 @@ async def handle_update(update: Update, bot: Bot):
             chat_id=chat_id,
             text=(
                 f"Visit {BASE_URL}/login to log in to your account.\n\n"
-                f"After logging in, use /link youremail@example.com to connect this chat."
+                f"Use /link youremail@example.com yourpassword to connect this chat."
             )
         )
     elif text.startswith("/link"):
-        parts = text.split(maxsplit=1)
-        if len(parts) < 2:
+        parts = text.split(maxsplit=2)
+        if len(parts) < 3:
             await bot.send_message(
                 chat_id=chat_id,
-                text="Usage: /link youremail@example.com"
+                text="Usage: /link youremail@example.com yourpassword"
             )
             return
         email = parts[1].strip()
-        from auth import authenticate_user, link_telegram
-        user = authenticate_user(email, "")
+        password = parts[2].strip()
+        user = authenticate_user(email, password)
         if not user:
-            from auth import get_user_by_chat_id as get_by_chat
-            user = get_by_chat(str(chat_id))
-            if user:
-                link_telegram(user, str(chat_id))
-                await bot.send_message(
-                    chat_id=chat_id,
-                    text="This chat is already linked to your account."
-                )
-                return
             await bot.send_message(
                 chat_id=chat_id,
-                text="No account found with that email. Sign up at " + BASE_URL
+                text="Invalid email or password. Sign up at " + BASE_URL + "/signup"
             )
             return
-        from auth import authenticate_user as auth_user
+        if user.telegram_chat_id:
+            await bot.send_message(
+                chat_id=chat_id,
+                text="This email is already linked to a Telegram account."
+            )
+            return
+        link_telegram(user, str(chat_id))
         await bot.send_message(
             chat_id=chat_id,
-            text="Please log in on the web first, then use /link with your email."
+            text=f"✅ Telegram linked to {email} successfully!"
         )
     elif text.startswith("/logoff"):
         user = get_user_by_chat_id(str(chat_id))

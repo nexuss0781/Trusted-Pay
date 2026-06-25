@@ -113,3 +113,11 @@ def get_user_by_chat_id(chat_id: str) -> User | None:
         return db.query(User).filter(User.telegram_chat_id == str(chat_id)).first()
     finally:
         db.close()
+
+
+def get_user_by_email(email: str) -> User | None:
+    db = SessionLocal()
+    try:
+        return db.query(User).filter(User.email == email).first()
+    finally:
+        db.close()
