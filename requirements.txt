@@ -1,4 +1,4 @@
-fastapi
+fastapi==0.138.0
 python-telegram-bot==22.8
-sqlalchemy
-python-multipart
+sqlalchemy==2.0.51
+python-multipart==0.0.32
