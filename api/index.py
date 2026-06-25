@@ -1,4 +1,5 @@
-import os
+import os, sys
+sys.path.insert(0, os.path.dirname(__file__))
 from fastapi import FastAPI, Request, Form, Cookie
 from fastapi.responses import HTMLResponse, RedirectResponse
 from telegram import Update, Bot
