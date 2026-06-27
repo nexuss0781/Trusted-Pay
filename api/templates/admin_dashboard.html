@@ -1,0 +1,73 @@
+{% extends "admin_base.html" %}
+{% block title %}Admin Dashboard — Trusted{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+  <h1 class="text-2xl font-bold mb-2">Admin Dashboard</h1>
+  <p style="color:var(--text-muted)" class="text-sm mb-8">Overview of platform activity</p>
+
+  <div class="grid-stats mb-8">
+    <div class="stat-card">
+      <div class="flex items-center gap-2" style="color:var(--text-muted)">
+        <i data-lucide="clock" size="16"></i>
+        <span class="stat-label">Pending Deposits</span>
+      </div>
+      <p class="stat-value" style="color:var(--warning)">{{ pending_deposits }}</p>
+    </div>
+    <div class="stat-card">
+      <div class="flex items-center gap-2" style="color:var(--text-muted)">
+        <i data-lucide="clock" size="16"></i>
+        <span class="stat-label">Pending Withdrawals</span>
+      </div>
+      <p class="stat-value" style="color:var(--warning)">{{ pending_withdrawals }}</p>
+    </div>
+    <div class="stat-card">
+      <div class="flex items-center gap-2" style="color:var(--text-muted)">
+        <i data-lucide="users" size="16"></i>
+        <span class="stat-label">Total Users</span>
+      </div>
+      <p class="stat-value" style="color:var(--teal)">{{ total_users }}</p>
+    </div>
+    <div class="stat-card">
+      <div class="flex items-center gap-2" style="color:var(--text-muted)">
+        <i data-lucide="wallet" size="16"></i>
+        <span class="stat-label">Total Wallets</span>
+      </div>
+      <p class="stat-value" style="color:var(--teal)">{{ total_wallets }}</p>
+    </div>
+    <div class="stat-card">
+      <div class="flex items-center gap-2" style="color:var(--text-muted)">
+        <i data-lucide="trending-up" size="16"></i>
+        <span class="stat-label">Total Deposits (All Time)</span>
+      </div>
+      <p class="stat-value" style="color:var(--success)">{{ total_deposits }}</p>
+    </div>
+    <div class="stat-card">
+      <div class="flex items-center gap-2" style="color:var(--text-muted)">
+        <i data-lucide="trending-down" size="16"></i>
+        <span class="stat-label">Total Withdrawals (All Time)</span>
+      </div>
+      <p class="stat-value" style="color:var(--error)">{{ total_withdrawals }}</p>
+    </div>
+  </div>
+
+  <div class="card mb-8">
+    <h2 class="text-lg font-semibold mb-4">Disputed Transactions</h2>
+    {% if disputes %}
+    <div class="space-y-3">
+      {% for d in disputes %}
+      <div class="flex items-center justify-between" style="padding:12px 0; border-bottom:1px solid var(--border);">
+        <div>
+          <p class="font-medium">#{{ d.id }} — {{ d.type|capitalize }} — {{ "%.2f"|format(d.amount) }} ETB</p>
+          <p class="text-xs" style="color:var(--text-muted)">{{ d.dispute_reason[:100] if d.dispute_reason else "" }}</p>
+        </div>
+        <a href="/admin/deposits" class="btn-primary btn-xs">View</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:var(--text-muted)" class="text-sm">No disputed transactions.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

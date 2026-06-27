@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Deposit — Trusted{% endblock %}
+
+{% block nav_links %}
+<span class="text-sm" style="color:var(--text-muted)">{{ user.full_name }}</span>
+<a href="/dashboard" class="text-sm font-medium hover:opacity-80 transition" style="color:var(--text-muted)">Dashboard</a>
+<a href="/logout" class="btn-secondary text-sm !py-2 !px-4">
+  <i data-lucide="log-out" size="16"></i>Log out
+</a>
+<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+  <i data-lucide="moon" size="18" id="theme-icon"></i>
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="dash-container" style="padding-top:100px">
+  <div class="animate-in" style="max-width:600px; margin:0 auto;">
+    <div class="flex items-center gap-4 mb-8">
+      <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:rgba(34,197,94,0.15); color:var(--success)">
+        <i data-lucide="arrow-down-left" size="28"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold">Deposit Funds</h1>
+        <p style="color:var(--text-muted)" class="text-sm">Transfer via Telebirr and submit your receipt</p>
+      </div>
+    </div>
+
+    {% if message %}
+    <div class="flash-message flash-{{ 'success' if success else 'error' }} mb-4">
+      <i data-lucide="{{ 'check-circle' if success else 'alert-circle' }}" size="16"></i>
+      <span>{{ message }}</span>
+    </div>
+    {% endif %}
+
+    {% if not success %}
+    <div class="card mb-6">
+      <h2 class="text-lg font-semibold mb-4">How to deposit</h2>
+      <ol class="space-y-3 text-sm" style="color:var(--text-muted)">
+        <li>1. Open your Telebirr app</li>
+        <li>2. Send money to: <strong style="color:var(--teal)">{{ base_phone or "Base Account" }}</strong></li>
+        <li>3. Copy the receipt/transaction number from the confirmation</li>
+        <li>4. Enter it below to submit your deposit request</li>
+      </ol>
+    </div>
+
+    <div class="glass p-8">
+      <form method="POST" action="/deposit" class="space-y-4">
+        <div>
+          <label class="text-sm font-medium block mb-2" style="color:var(--text-muted)">Telebirr Receipt Number</label>
+          <input type="text" name="receipt_number" required placeholder="e.g. DFR9BROP2Z" class="input-field" maxlength="50" pattern="[A-Za-z0-9]+" title="Alphanumeric receipt number">
+        </div>
+        <button type="submit" class="btn-primary w-full !py-3.5">
+          <i data-lucide="search" size="18"></i>Verify & Submit
+        </button>
+      </form>
+    </div>
+    {% endif %}
+
+    {% if success and txn %}
+    <div class="card">
+      <h2 class="text-lg font-semibold mb-4">Deposit Request Submitted</h2>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between py-2" style="border-bottom:1px solid var(--border)">
+          <span style="color:var(--text-muted)">Transaction ID</span>
+          <span class="font-medium">#{{ txn.id }}</span>
+        </div>
+        <div class="flex items-center justify-between py-2" style="border-bottom:1px solid var(--border)">
+          <span style="color:var(--text-muted)">Amount</span>
+          <span class="font-medium">{{ "%.2f"|format(txn.amount) }} ETB</span>
+        </div>
+        <div class="flex items-center justify-between py-2" style="border-bottom:1px solid var(--border)">
+          <span style="color:var(--text-muted)">Status</span>
+          <span class="status-badge status-{{ txn.status }}">{{ txn.status }}</span>
+        </div>
+        <div class="flex items-center justify-between py-2">
+          <span style="color:var(--text-muted)">Receipt</span>
+          <span class="font-medium">{{ txn.receipt_no }}</span>
+        </div>
+      </div>
+      <p class="text-sm mt-4" style="color:var(--text-muted)">
+        Your deposit is pending admin approval. You'll be notified once processed.
+      </p>
+      <a href="/dashboard" class="btn-primary mt-4 inline-block">Back to Dashboard</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

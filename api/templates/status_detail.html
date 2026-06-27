@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Transaction #{{ txn.id }} — Trusted{% endblock %}
+
+{% block nav_links %}
+<span class="text-sm" style="color:var(--text-muted)">{{ user.full_name }}</span>
+<a href="/dashboard" class="text-sm font-medium hover:opacity-80 transition" style="color:var(--text-muted)">Dashboard</a>
+<a href="/status" class="text-sm font-medium hover:opacity-80 transition" style="color:var(--text-muted)">History</a>
+<a href="/logout" class="btn-secondary text-sm !py-2 !px-4">
+  <i data-lucide="log-out" size="16"></i>Log out
+</a>
+<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+  <i data-lucide="moon" size="18" id="theme-icon"></i>
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="dash-container" style="padding-top:100px">
+  <div class="animate-in" style="max-width:700px; margin:0 auto;">
+    <a href="/status" class="text-sm font-medium mb-6 inline-block" style="color:var(--teal)">← Back to History</a>
+
+    <div class="card mb-6">
+      <div class="card-header">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:{% if txn.type == 'deposit' %}rgba(34,197,94,0.15){% else %}rgba(245,158,11,0.15){% endif %}; color:{% if txn.type == 'deposit' %}var(--success){% else %}var(--warning){% endif %}">
+            <i data-lucide="{% if txn.type == 'deposit' %}arrow-down-left{% else %}arrow-up-right{% endif %}" size="24"></i>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold" style="text-transform:capitalize">{{ txn.type }} — {{ "%.2f"|format(txn.amount) }} ETB</h1>
+            <span class="status-badge status-{{ txn.status }}">{{ txn.status }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-6">
+      <h2 class="text-lg font-semibold mb-4">Transaction Details</h2>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">Transaction ID</span>
+          <span class="detail-value">#{{ txn.id }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Type</span>
+          <span class="detail-value" style="text-transform:capitalize">{{ txn.type }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Amount</span>
+          <span class="detail-value">{{ "%.2f"|format(txn.amount) }} ETB</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Date</span>
+          <span class="detail-value">{{ txn.created_at.strftime("%B %d, %Y %H:%M") if txn.created_at else "-" }}</span>
+        </div>
+        {% if txn.type == 'deposit' %}
+        <div class="detail-item">
+          <span class="detail-label">Receipt Number</span>
+          <span class="detail-value">{{ txn.receipt_no or "-" }}</span>
+        </div>
+        {% if txn.payer_name %}
+        <div class="detail-item">
+          <span class="detail-label">Payer Name</span>
+          <span class="detail-value">{{ txn.payer_name }}</span>
+        </div>
+        {% endif %}
+        {% if txn.payer_phone %}
+        <div class="detail-item">
+          <span class="detail-label">Payer Phone</span>
+          <span class="detail-value">{{ txn.payer_phone }}</span>
+        </div>
+        {% endif %}
+        {% if txn.receiver_name %}
+        <div class="detail-item">
+          <span class="detail-label">Receiver Name</span>
+          <span class="detail-value">{{ txn.receiver_name }}</span>
+        </div>
+        {% endif %}
+        {% if txn.receiver_phone %}
+        <div class="detail-item">
+          <span class="detail-label">Receiver Phone</span>
+          <span class="detail-value">{{ txn.receiver_phone }}</span>
+        </div>
+        {% endif %}
+        {% if txn.total_paid %}
+        <div class="detail-item">
+          <span class="detail-label">Total Paid</span>
+          <span class="detail-value">{{ "%.2f"|format(txn.total_paid) }} ETB</span>
+        </div>
+        {% endif %}
+        {% if txn.service_fee %}
+        <div class="detail-item">
+          <span class="detail-label">Service Fee</span>
+          <span class="detail-value">{{ "%.2f"|format(txn.service_fee) }} ETB</span>
+        </div>
+        {% endif %}
+        {% endif %}
+        {% if txn.type == 'withdrawal' and txn.reason %}
+        <div class="detail-item" style="grid-column:1/-1;">
+          <span class="detail-label">Reason</span>
+          <span class="detail-value">{{ txn.reason }}</span>
+        </div>
+        {% endif %}
+        {% if txn.admin_note %}
+        <div class="detail-item" style="grid-column:1/-1;">
+          <span class="detail-label">Admin Note</span>
+          <span class="detail-value">{{ txn.admin_note }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="card mb-6">
+      <h2 class="text-lg font-semibold mb-4">Status Timeline</h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <p class="font-medium">{{ txn.type|capitalize }} Created</p>
+          <p class="text-xs" style="color:var(--text-muted)">{{ txn.created_at.strftime("%B %d, %Y %H:%M") if txn.created_at else "" }}</p>
+        </div>
+        <div class="timeline-item {{ txn.status }}">
+          {% if txn.status == 'pending' %}
+          <p class="font-medium" style="color:var(--warning)">Awaiting Admin Approval</p>
+          <p class="text-xs" style="color:var(--text-muted)">Your request is being reviewed</p>
+          {% elif txn.status == 'approved' %}
+          <p class="font-medium" style="color:var(--success)">Approved</p>
+          {% if txn.updated_at %}<p class="text-xs" style="color:var(--text-muted)">{{ txn.updated_at.strftime("%B %d, %Y %H:%M") }}</p>{% endif %}
+          {% elif txn.status == 'completed' %}
+          <p class="font-medium" style="color:var(--success)">Completed</p>
+          {% if txn.updated_at %}<p class="text-xs" style="color:var(--text-muted)">{{ txn.updated_at.strftime("%B %d, %Y %H:%M") }}</p>{% endif %}
+          {% elif txn.status == 'rejected' %}
+          <p class="font-medium" style="color:var(--error)">Rejected</p>
+          {% if txn.admin_note %}<p class="text-xs" style="color:var(--text-muted)">Reason: {{ txn.admin_note }}</p>{% endif %}
+          {% elif txn.status == 'disputed' %}
+          <p class="font-medium" style="color:var(--warning)">Disputed — Under Review</p>
+          <p class="text-xs" style="color:var(--text-muted)">Waiting for admin to review your dispute</p>
+          {% elif txn.status == 'closed' %}
+          <p class="font-medium" style="color:var(--text-muted)">Closed</p>
+          <p class="text-xs" style="color:var(--text-muted)">Dispute resolved</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Dispute / Rejection Actions -->
+    {% if txn.status == 'rejected' %}
+    <div class="card">
+      <h2 class="text-lg font-semibold mb-4">Dispute This Decision</h2>
+      {% if dispute_submitted %}
+      <div class="flash-message flash-info">
+        <i data-lucide="info" size="16"></i>
+        <span>Your dispute has been submitted. Admin will review it.</span>
+      </div>
+      {% else %}
+      <form method="POST" action="/status/{{ txn.id }}/dispute" class="space-y-4" enctype="multipart/form-data">
+        <div>
+          <label class="text-sm font-medium block mb-2" style="color:var(--text-muted)">Telebirr Transaction Number</label>
+          <input type="text" name="dispute_txn_number" placeholder="Enter your Telebirr transaction number" class="input-field" maxlength="50">
+        </div>
+        <div>
+          <label class="text-sm font-medium block mb-2" style="color:var(--text-muted)">Your Explanation</label>
+          <textarea name="description" required placeholder="Explain why this should be reconsidered..." class="input-field" rows="4" maxlength="1000"></textarea>
+        </div>
+        <div>
+          <label class="text-sm font-medium block mb-2" style="color:var(--text-muted)">Attachment (optional)</label>
+          <input type="file" name="attachment" class="input-field" accept="image/*,.pdf">
+        </div>
+        <button type="submit" class="btn-warning">Submit Dispute</button>
+      </form>
+      {% endif %}
+    </div>
+    {% elif txn.status == 'disputed' %}
+    <div class="card" style="border-left:4px solid var(--warning);">
+      <h2 class="text-lg font-semibold mb-4">Dispute Under Review</h2>
+      <p style="color:var(--text-muted)" class="text-sm">Your dispute has been submitted and is awaiting admin review.</p>
+      {% if txn.dispute_reason %}
+      <div class="mt-3 p-3 rounded-lg" style="background:var(--bg-card);">
+        <p class="text-xs" style="color:var(--text-muted)">Your explanation:</p>
+        <p class="text-sm mt-1">{{ txn.dispute_reason }}</p>
+      </div>
+      {% endif %}
+    </div>
+    {% elif txn.status == 'closed' %}
+    <div class="card" style="border-left:4px solid var(--text-muted);">
+      <h2 class="text-lg font-semibold mb-4">Dispute Closed</h2>
+      <p style="color:var(--text-muted)" class="text-sm">This dispute has been resolved and closed by admin.</p>
+      {% if txn.admin_note %}
+      <div class="mt-3 p-3 rounded-lg" style="background:var(--bg-card);">
+        <p class="text-xs" style="color:var(--text-muted)">Admin note:</p>
+        <p class="text-sm mt-1">{{ txn.admin_note }}</p>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

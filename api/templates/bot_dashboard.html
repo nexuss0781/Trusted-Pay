@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Bot Dashboard — Trusted{% endblock %}
+
+{% block content %}
+<div style="max-width:720px; margin:40px auto; padding:0 20px; padding-top:100px;">
+  <h1 class="text-2xl font-bold mb-6">Bot Dashboard</h1>
+
+  <div class="card mb-4">
+    <div class="item" style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);">
+      <span style="color:var(--text-muted)">Token</span>
+      <span class="value"><span class="status-badge status-{{ 'approved' if TOKEN else 'rejected' }}">{{ token_status }}</span></span>
+    </div>
+    <div class="item" style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);">
+      <span style="color:var(--text-muted)">Bot Name</span>
+      <span class="font-semibold">{{ bot_name }}</span>
+    </div>
+    <div class="item" style="display:flex; justify-content:space-between; padding:10px 0;">
+      <span style="color:var(--text-muted)">Username</span>
+      <span class="font-semibold">{{ bot_username }}</span>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="item" style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);">
+      <span style="color:var(--text-muted)">Webhook URL</span>
+      <span class="font-semibold">{{ webhook_url }}</span>
+    </div>
+    <div class="item" style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);">
+      <span style="color:var(--text-muted)">Pending Updates</span>
+      <span class="font-semibold">{{ pending }}</span>
+    </div>
+    <div class="item" style="display:flex; justify-content:space-between; padding:10px 0;">
+      <span style="color:var(--text-muted)">Last Error</span>
+      <span class="font-semibold">{{ last_err }}</span>
+    </div>
+  </div>
+
+  {% if errors %}
+    {% for e in errors %}
+    <div class="card mb-2" style="border-left:4px solid var(--error);">
+      <b>Error:</b> {{ e }}
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="card mb-4" style="border-left:4px solid var(--success);">
+    <b>All checks passed</b>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <b>End-to-End Test</b>
+    <button class="btn-primary mt-4" onclick="testBot()">Test Webhook</button>
+    <div id="result" class="mt-4"></div>
+  </div>
+</div>
+
+<script>
+async function testBot() {
+  const btn = document.querySelector('.btn-primary');
+  btn.disabled = true; btn.textContent = 'Testing...';
+  try {
+    const r = await fetch('/api/test-webhook', {method:'POST'});
+    const d = await r.json();
+    document.getElementById('result').innerHTML =
+      '<pre style="background:var(--bg-card); padding:12px; border-radius:8px; font-size:0.85rem;">' + JSON.stringify(d, null, 2) + '</pre>';
+  } catch(e) {
+    document.getElementById('result').innerHTML = '<pre style="color:var(--error); background:var(--bg-card); padding:12px; border-radius:8px;">' + e + '</pre>';
+  }
+  btn.disabled = false; btn.textContent = 'Test Webhook';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin — Trusted{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  {% block extra_head %}{% endblock %}
+  <style>
+  .admin-sidebar { width: 240px; min-height: 100vh; position: fixed; left: 0; top: 0; }
+  .admin-main { margin-left: 240px; }
+  @media (max-width: 768px) {
+    .admin-sidebar { display: none; }
+    .admin-main { margin-left: 0; }
+  }
+  </style>
+</head>
+<body class="bg-gradient">
+  <div class="admin-sidebar glass" style="border-right:1px solid var(--border); padding:24px;">
+    <a href="/admin" class="flex items-center gap-2 text-lg font-bold mb-8" style="color:var(--teal)">
+      <i data-lucide="shield-check" size="22"></i>
+      <span>Admin Panel</span>
+    </a>
+    <nav class="space-y-2">
+      <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color:var(--text-muted); transition:all 0.3s;" onmouseover="this.style.color='var(--text)';this.style.background='var(--bg-card)'" onmouseout="this.style.color='var(--text-muted)';this.style.background='transparent'">
+        <i data-lucide="layout-dashboard" size="16"></i>Dashboard
+      </a>
+      <a href="/admin/deposits" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color:var(--text-muted); transition:all 0.3s;" onmouseover="this.style.color='var(--text)';this.style.background='var(--bg-card)'" onmouseout="this.style.color='var(--text-muted)';this.style.background='transparent'">
+        <i data-lucide="arrow-down-left" size="16"></i>Deposits
+      </a>
+      <a href="/admin/withdrawals" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color:var(--text-muted); transition:all 0.3s;" onmouseover="this.style.color='var(--text)';this.style.background='var(--bg-card)'" onmouseout="this.style.color='var(--text-muted)';this.style.background='transparent'">
+        <i data-lucide="arrow-up-right" size="16"></i>Withdrawals
+      </a>
+      <a href="/admin/users" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color:var(--text-muted); transition:all 0.3s;" onmouseover="this.style.color='var(--text)';this.style.background='var(--bg-card)'" onmouseout="this.style.color='var(--text-muted)';this.style.background='transparent'">
+        <i data-lucide="users" size="16"></i>Users
+      </a>
+      <a href="/admin/settings" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color:var(--text-muted); transition:all 0.3s;" onmouseover="this.style.color='var(--text)';this.style.background='var(--bg-card)'" onmouseout="this.style.color='var(--text-muted)';this.style.background='transparent'">
+        <i data-lucide="settings" size="16"></i>Settings
+      </a>
+      <hr class="divider" style="margin:12px 0;">
+      <a href="/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color:var(--text-muted); transition:all 0.3s;" onmouseover="this.style.color='var(--text)';this.style.background='var(--bg-card)'" onmouseout="this.style.color='var(--text-muted)';this.style.background='transparent'">
+        <i data-lucide="arrow-left" size="16"></i>Back to App
+      </a>
+      <a href="/logout" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm" style="color:var(--text-muted); transition:all 0.3s;" onmouseover="this.style.color='var(--error)';this.style.background='var(--bg-card)'" onmouseout="this.style.color='var(--text-muted)';this.style.background='transparent'">
+        <i data-lucide="log-out" size="16"></i>Log out
+      </a>
+    </nav>
+  </div>
+
+  <div class="admin-main" style="padding:32px; min-height:100vh;">
+    {% block content %}{% endblock %}
+  </div>
+
+  <script>
+    let dark = localStorage.getItem('theme') !== 'light';
+    document.documentElement.classList.toggle('light', !dark);
+    lucide.createIcons();
+  </script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

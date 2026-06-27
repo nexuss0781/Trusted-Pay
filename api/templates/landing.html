@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Trusted — Secure Platform{% endblock %}
+
+{% block content %}
+<section class="max-w-6xl mx-auto px-6 py-20 md:py-32" style="padding-top:120px">
+  <div class="text-center max-w-3xl mx-auto animate-in">
+    <div class="inline-flex items-center gap-2 glass !px-4 !py-2 mb-8 text-sm" style="color:var(--teal)">
+      <i data-lucide="shield" size="14"></i>
+      <span>Secure & Trusted Platform</span>
+    </div>
+    <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-6" style="color:var(--text)">
+      Your trusted space for
+      <span style="color:var(--teal)">secure</span>
+      <span style="color:var(--orange)">connections</span>
+    </h1>
+    <p class="text-lg md:text-xl mb-10" style="color:var(--text-muted); max-width:600px; margin-left:auto; margin-right:auto;">
+      A simple, secure platform with Telegram integration.
+      Sign up in seconds, connect with confidence.
+    </p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+      <a href="/signup" class="btn-primary text-lg !py-4 !px-10">Create your account</a>
+      <a href="/login" class="btn-secondary text-lg !py-4 !px-10">
+        <i data-lucide="log-in" size="18"></i>Log in
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="max-w-6xl mx-auto px-6 py-20">
+  <div class="text-center mb-16 animate-in">
+    <h2 class="text-3xl md:text-4xl font-bold mb-4">Built for trust</h2>
+    <p style="color:var(--text-muted)" class="text-lg">Everything you need in one place</p>
+  </div>
+  <div class="grid md:grid-cols-3 gap-6">
+    <div class="glass p-8 feature-card animate-in">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:rgba(94,159,163,0.15); color:var(--teal)">
+        <i data-lucide="user-plus" size="24"></i>
+      </div>
+      <h3 class="text-xl font-semibold mb-3">Simple Sign Up</h3>
+      <p style="color:var(--text-muted)">Create your account with just your name, email, and phone. No verification hassles.</p>
+    </div>
+    <div class="glass p-8 feature-card animate-in">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:rgba(250,184,127,0.15); color:var(--orange)">
+        <i data-lucide="message-circle" size="24"></i>
+      </div>
+      <h3 class="text-xl font-semibold mb-3">Telegram Integration</h3>
+      <p style="color:var(--text-muted)">Connect your account to Telegram for seamless notifications and bot commands.</p>
+    </div>
+    <div class="glass p-8 feature-card animate-in">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:rgba(176,85,116,0.15); color:var(--rose)">
+        <i data-lucide="lock" size="24"></i>
+      </div>
+      <h3 class="text-xl font-semibold mb-3">Secure by Design</h3>
+      <p style="color:var(--text-muted)">Your data is encrypted and protected. We take your privacy seriously.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

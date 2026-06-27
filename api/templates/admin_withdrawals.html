@@ -1,0 +1,108 @@
+{% extends "admin_base.html" %}
+{% block title %}Withdrawals — Admin{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+  <h1 class="text-2xl font-bold mb-6">Withdrawal Requests</h1>
+
+  {% if message %}
+  <div class="flash-message flash-{{ 'success' if success else 'error' }} mb-4">
+    <i data-lucide="{{ 'check-circle' if success else 'alert-circle' }}" size="16"></i>
+    <span>{{ message }}</span>
+  </div>
+  {% endif %}
+
+  {% if pending_withdrawals %}
+  <div class="space-y-4">
+    {% for txn in pending_withdrawals %}
+    <div class="card">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-semibold">Withdrawal #{{ txn.id }}</h3>
+          <p class="text-sm" style="color:var(--text-muted)">{{ txn.created_at.strftime("%b %d, %Y %H:%M") if txn.created_at else "" }}</p>
+        </div>
+        <span class="status-badge status-{{ txn.status }}">{{ txn.status }}</span>
+      </div>
+
+      <div class="detail-grid mb-4">
+        <div class="detail-item">
+          <span class="detail-label">User</span>
+          <span class="detail-value">{{ txn.user.full_name if txn.user else "Unknown" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Email</span>
+          <span class="detail-value">{{ txn.user.email if txn.user else "-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Amount</span>
+          <span class="detail-value" style="color:var(--error)">{{ "%.2f"|format(txn.amount) }} ETB</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Phone</span>
+          <span class="detail-value">{{ txn.user.phone if txn.user else "-" }}</span>
+        </div>
+        {% if txn.reason %}
+        <div class="detail-item" style="grid-column:1/-1;">
+          <span class="detail-label">Reason</span>
+          <span class="detail-value">{{ txn.reason }}</span>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if txn.status == 'pending' %}
+      <div class="flex gap-3 mt-4">
+        <button class="btn-success btn-sm" onclick="showCompleteForm({{ txn.id }})">
+          <i data-lucide="check" size="16"></i>Mark Completed
+        </button>
+        <button class="btn-danger btn-sm" onclick="showRejectForm({{ txn.id }})">
+          <i data-lucide="x" size="16"></i>Reject
+        </button>
+      </div>
+
+      <div id="complete-form-{{ txn.id }}" class="mt-4" style="display:none;">
+        <form method="POST" action="/admin/withdrawals/{{ txn.id }}/complete" class="space-y-3">
+          <input type="text" name="transaction_number" required placeholder="Telebirr transaction number" class="input-field" maxlength="50">
+          <div class="flex gap-2">
+            <button type="submit" class="btn-success btn-sm">Confirm Complete</button>
+            <button type="button" class="btn-secondary btn-sm" onclick="hideCompleteForm({{ txn.id }})">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="reject-form-{{ txn.id }}" class="mt-4" style="display:none;">
+        <form method="POST" action="/admin/withdrawals/{{ txn.id }}/reject" class="space-y-3">
+          <textarea name="reason" required placeholder="Reason for rejection..." class="input-field" rows="2" maxlength="500"></textarea>
+          <div class="flex gap-2">
+            <button type="submit" class="btn-danger btn-sm">Confirm Reject</button>
+            <button type="button" class="btn-secondary btn-sm" onclick="hideRejectForm({{ txn.id }})">Cancel</button>
+          </div>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state glass p-12">
+    <i data-lucide="inbox" size="48" style="color:var(--text-muted); opacity:0.5; margin-bottom:16px;"></i>
+    <h3 class="text-lg font-medium mb-2">No pending withdrawals</h3>
+    <p style="color:var(--text-muted)">All withdrawal requests have been processed.</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function showCompleteForm(id) {
+  document.getElementById('complete-form-' + id).style.display = 'block';
+}
+function hideCompleteForm(id) {
+  document.getElementById('complete-form-' + id).style.display = 'none';
+}
+function showRejectForm(id) {
+  document.getElementById('reject-form-' + id).style.display = 'block';
+}
+function hideRejectForm(id) {
+  document.getElementById('reject-form-' + id).style.display = 'none';
+}
+</script>
+{% endblock %}

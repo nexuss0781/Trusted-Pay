@@ -1,0 +1,51 @@
+{% extends "admin_base.html" %}
+{% block title %}Settings — Admin{% endblock %}
+
+{% block content %}
+<div class="animate-in" style="max-width:600px;">
+  <h1 class="text-2xl font-bold mb-6">Admin Settings</h1>
+
+  {% if message %}
+  <div class="flash-message flash-{{ 'success' if success else 'error' }} mb-4">
+    <i data-lucide="{{ 'check-circle' if success else 'alert-circle' }}" size="16"></i>
+    <span>{{ message }}</span>
+  </div>
+  {% endif %}
+
+  <div class="card mb-6">
+    <h2 class="text-lg font-semibold mb-4">General Settings</h2>
+    <form method="POST" action="/admin/settings" class="space-y-4">
+      <div>
+        <label class="text-sm font-medium block mb-2" style="color:var(--text-muted)">Service Fee (%)</label>
+        <input type="number" name="service_fee_percent" value="{{ settings.service_fee_percent if settings else 0 }}" class="input-field" min="0" max="100" step="0.01">
+        <p class="text-xs mt-1" style="color:var(--text-muted)">Percentage deducted from deposits before crediting user wallet. Default: 0%</p>
+      </div>
+      <div>
+        <label class="text-sm font-medium block mb-2" style="color:var(--text-muted)">Base Telebirr Phone Number</label>
+        <input type="text" name="base_phone_number" value="{{ settings.base_phone_number if settings else '' }}" class="input-field" placeholder="+251 9XX XXX XXX" maxlength="20">
+        <p class="text-xs mt-1" style="color:var(--text-muted)">The main account where users send deposits.</p>
+      </div>
+      <button type="submit" class="btn-primary">Save Settings</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2 class="text-lg font-semibold mb-4">Activity Log</h2>
+    {% if logs %}
+    <div class="space-y-2" style="max-height:400px; overflow-y:auto;">
+      {% for log in logs %}
+      <div style="padding:8px 12px; background:var(--bg-card); border-radius:8px; font-size:0.85rem;">
+        <div class="flex items-center justify-between">
+          <span style="color:var(--text-muted)">{{ log.created_at.strftime("%b %d, %H:%M") if log.created_at else "" }}</span>
+          <span class="text-xs" style="color:var(--text-muted)">{{ log.action }}</span>
+        </div>
+        <p class="text-xs mt-1" style="color:var(--text-muted)">{{ log.details_json }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:var(--text-muted)" class="text-sm">No activity logged yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

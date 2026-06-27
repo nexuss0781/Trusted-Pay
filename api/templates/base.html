@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Trusted{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gradient">
+  <nav class="nav-glass fixed top-0 left-0 right-0 z-50 px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2 text-xl font-bold" style="color:var(--teal)">
+        <i data-lucide="shield-check" size="24"></i>
+        <span>Trusted</span>
+      </a>
+      <div class="flex items-center gap-4">
+        {% block nav_links %}
+        <a href="/login" class="text-sm font-medium hover:opacity-80 transition" style="color:var(--text-muted)">Log in</a>
+        <a href="/signup" class="btn-primary text-sm !py-2 !px-5">Get started</a>
+        {% endblock %}
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+          <i data-lucide="moon" size="18" id="theme-icon"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block footer %}
+  <footer class="border-t" style="border-color:var(--border);">
+    <div class="max-w-6xl mx-auto px-6 py-8 text-center text-sm" style="color:var(--text-muted)">
+      <p>&copy; 2026 Trusted. All rights reserved.</p>
+    </div>
+  </footer>
+  {% endblock %}
+
+  <script>
+    let dark = localStorage.getItem('theme') !== 'light';
+    document.documentElement.classList.toggle('light', !dark);
+    function toggleTheme() {
+      dark = !dark;
+      document.documentElement.classList.toggle('light', !dark);
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      const icon = document.getElementById('theme-icon');
+      if (icon) {
+        icon.setAttribute('data-lucide', dark ? 'moon' : 'sun');
+        lucide.createIcons();
+      }
+    }
+    lucide.createIcons();
+    const icon = document.getElementById('theme-icon');
+    if (icon) {
+      icon.setAttribute('data-lucide', dark ? 'moon' : 'sun');
+      lucide.createIcons();
+    }
+  </script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

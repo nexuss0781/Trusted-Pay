@@ -1,0 +1,155 @@
+{% extends "admin_base.html" %}
+{% block title %}Users — Admin{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+  <h1 class="text-2xl font-bold mb-6">User Management</h1>
+
+  <div class="card mb-6">
+    <div class="flex items-center gap-4 mb-4">
+      <input type="text" id="userSearch" placeholder="Search by name, email, or phone..." class="input-field" style="max-width:400px;" onkeyup="filterUsers()">
+    </div>
+
+    {% if users %}
+    <div class="overflow-x-auto">
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border);">
+            <th style="text-align:left; padding:12px 8px; font-size:0.85rem; color:var(--text-muted);">ID</th>
+            <th style="text-align:left; padding:12px 8px; font-size:0.85rem; color:var(--text-muted);">Name</th>
+            <th style="text-align:left; padding:12px 8px; font-size:0.85rem; color:var(--text-muted);">Email</th>
+            <th style="text-align:left; padding:12px 8px; font-size:0.85rem; color:var(--text-muted);">Phone</th>
+            <th style="text-align:left; padding:12px 8px; font-size:0.85rem; color:var(--text-muted);">Role</th>
+            <th style="text-align:left; padding:12px 8px; font-size:0.85rem; color:var(--text-muted);">Status</th>
+            <th style="text-align:left; padding:12px 8px; font-size:0.85rem; color:var(--text-muted);">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr class="user-row" style="border-bottom:1px solid var(--border);" data-search="{{ u.full_name.lower() }} {{ u.email.lower() }} {{ u.phone }}">
+            <td style="padding:12px 8px; font-size:0.9rem;">{{ u.id }}</td>
+            <td style="padding:12px 8px; font-size:0.9rem; font-weight:500;">{{ u.full_name }}</td>
+            <td style="padding:12px 8px; font-size:0.9rem;">{{ u.email }}</td>
+            <td style="padding:12px 8px; font-size:0.9rem;">{{ u.phone }}</td>
+            <td style="padding:12px 8px; font-size:0.9rem;">
+              <span class="status-badge {% if u.role == 'admin' %}status-approved{% else %}status-pending{% endif %}">{{ u.role }}</span>
+            </td>
+            <td style="padding:12px 8px; font-size:0.9rem;">
+              {% if not u.is_active %}
+              <span class="status-badge status-rejected">Banned</span>
+              {% elif u.is_frozen %}
+              <span class="status-badge status-pending">Frozen</span>
+              {% else %}
+              <span class="status-badge status-approved">Active</span>
+              {% endif %}
+            </td>
+            <td style="padding:12px 8px;">
+              <button class="btn-secondary btn-xs" onclick="showUserDetail({{ u.id }})">Manage</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="color:var(--text-muted)" class="text-sm">No users found.</p>
+    {% endif %}
+  </div>
+
+  {% for u in users %}
+  <div id="user-detail-{{ u.id }}" class="modal-overlay" style="display:none;">
+    <div class="modal-content glass" style="padding:32px; border-radius:16px; max-width:600px;">
+      <div class="modal-header">
+        <h2 class="text-xl font-bold">{{ u.full_name }}</h2>
+        <button class="modal-close" onclick="hideUserDetail({{ u.id }})">
+          <i data-lucide="x" size="20"></i>
+        </button>
+      </div>
+      <div class="detail-grid mb-6">
+        <div class="detail-item">
+          <span class="detail-label">Email</span>
+          <span class="detail-value">{{ u.email }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Phone</span>
+          <span class="detail-value">{{ u.phone }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Role</span>
+          <span class="detail-value">{{ u.role }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Telegram</span>
+          <span class="detail-value">{{ "Connected" if u.telegram_chat_id else "Not connected" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Wallet Balance</span>
+          <span class="detail-value" style="color:var(--teal)">{{ "%.2f"|format(user_wallets.get(u.id, 0)) }} ETB</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Member Since</span>
+          <span class="detail-value">{{ u.created_at.strftime("%b %d, %Y") if u.created_at else "-" }}</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <h3 class="font-semibold mb-3 mt-4">Admin Actions</h3>
+      <form method="POST" action="/admin/users/{{ u.id }}/restrict" class="space-y-3">
+        <div class="flex flex-wrap gap-2">
+          <label class="flex items-center gap-2 text-sm" style="padding:8px 12px; background:var(--bg-card); border-radius:8px; border:1px solid var(--border); cursor:pointer;">
+            <input type="checkbox" name="permissions" value="can_deposit" checked> Deposit
+          </label>
+          <label class="flex items-center gap-2 text-sm" style="padding:8px 12px; background:var(--bg-card); border-radius:8px; border:1px solid var(--border); cursor:pointer;">
+            <input type="checkbox" name="permissions" value="can_withdraw" checked> Withdraw
+          </label>
+          <label class="flex items-center gap-2 text-sm" style="padding:8px 12px; background:var(--bg-card); border-radius:8px; border:1px solid var(--border); cursor:pointer;">
+            <input type="checkbox" name="permissions" value="can_view_status" checked> View Status
+          </label>
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" name="action" value="restrict" class="btn-warning btn-sm">Restrict</button>
+          <button type="submit" name="action" value="freeze" class="btn-warning btn-sm">Freeze</button>
+          <button type="submit" name="action" value="ban" class="btn-danger btn-sm" onclick="return confirm('Ban this user?')">Ban</button>
+          <button type="submit" name="action" value="unban" class="btn-success btn-sm">Remove Restrictions</button>
+        </div>
+        <div>
+          <input type="text" name="reason" placeholder="Reason for action..." class="input-field" maxlength="500">
+        </div>
+        <div>
+          <label class="text-sm" style="color:var(--text-muted)">Expires (leave blank for permanent):</label>
+          <input type="datetime-local" name="expires_at" class="input-field">
+        </div>
+      </form>
+
+      <hr class="divider">
+
+      <div class="mt-4">
+        <h3 class="font-semibold mb-3">Quick Scan</h3>
+        <p class="text-sm mb-3" style="color:var(--text-muted)">Check user's pending transactions via Telebirr in real-time.</p>
+        <form method="POST" action="/admin/users/{{ u.id }}/scan" style="display:inline;">
+          <button type="submit" class="btn-primary btn-sm">
+            <i data-lucide="scan" size="16"></i>Scan Pending Transactions
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+function filterUsers() {
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  document.querySelectorAll('.user-row').forEach(row => {
+    row.style.display = row.dataset.search.includes(q) ? '' : 'none';
+  });
+}
+function showUserDetail(id) {
+  document.getElementById('user-detail-' + id).style.display = 'flex';
+}
+function hideUserDetail(id) {
+  document.getElementById('user-detail-' + id).style.display = 'none';
+}
+</script>
+{% endblock %}

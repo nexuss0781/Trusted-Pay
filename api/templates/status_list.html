@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Transaction Status — Trusted{% endblock %}
+
+{% block nav_links %}
+<span class="text-sm" style="color:var(--text-muted)">{{ user.full_name }}</span>
+<a href="/dashboard" class="text-sm font-medium hover:opacity-80 transition" style="color:var(--text-muted)">Dashboard</a>
+<a href="/logout" class="btn-secondary text-sm !py-2 !px-4">
+  <i data-lucide="log-out" size="16"></i>Log out
+</a>
+<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+  <i data-lucide="moon" size="18" id="theme-icon"></i>
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="dash-container" style="padding-top:100px">
+  <div class="animate-in">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold">Transaction History</h1>
+        <p style="color:var(--text-muted)" class="text-sm">Your latest transactions</p>
+      </div>
+      <a href="/dashboard" class="btn-secondary btn-sm">← Dashboard</a>
+    </div>
+
+    {% if transactions %}
+    <div class="space-y-3">
+      {% for txn in transactions %}
+      <a href="/status/{{ txn.id }}" class="transaction-card card flex items-center justify-between" style="padding:16px; text-decoration:none; color:inherit;">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:{% if txn.type == 'deposit' %}rgba(34,197,94,0.15){% else %}rgba(245,158,11,0.15){% endif %}; color:{% if txn.type == 'deposit' %}var(--success){% else %}var(--warning){% endif %}">
+            <i data-lucide="{% if txn.type == 'deposit' %}arrow-down-left{% else %}arrow-up-right{% endif %}" size="18"></i>
+          </div>
+          <div>
+            <p class="font-medium" style="text-transform:capitalize">{{ txn.type }}</p>
+            <p class="text-xs" style="color:var(--text-muted)">{{ txn.created_at.strftime("%b %d, %Y %H:%M") if txn.created_at else "" }}</p>
+            {% if txn.receipt_no %}
+            <p class="text-xs" style="color:var(--text-muted)">Receipt: {{ txn.receipt_no }}</p>
+            {% endif %}
+          </div>
+        </div>
+        <div class="text-right">
+          <p class="font-semibold">{{ "%.2f"|format(txn.amount) }} ETB</p>
+          <span class="status-badge status-{{ txn.status }}">{{ txn.status }}</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+
+    {% if total_pages > 1 %}
+    <div class="pagination">
+      {% if page > 1 %}
+      <a href="/status?page={{ page - 1 }}"><button>← Previous</button></a>
+      {% endif %}
+      {% for p in range(1, total_pages + 1) %}
+      <a href="/status?page={{ p }}"><button class="{% if p == page %}current{% endif %}">{{ p }}</button></a>
+      {% endfor %}
+      {% if page < total_pages %}
+      <a href="/status?page={{ page + 1 }}"><button>Next →</button></a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state glass p-12">
+      <i data-lucide="inbox" size="48" style="color:var(--text-muted); opacity:0.5; margin-bottom:16px;"></i>
+      <h3 class="text-lg font-medium mb-2">No transactions yet</h3>
+      <p style="color:var(--text-muted)">Make a deposit or withdrawal to see your history here.</p>
+      <a href="/deposit" class="btn-primary mt-6 inline-block">Make a Deposit</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

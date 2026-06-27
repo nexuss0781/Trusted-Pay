@@ -1,7 +1,7 @@
 import hashlib
 import secrets
 from sqlalchemy.orm import Session as DBSession
-from models import User, Session
+from models import User, Session, Wallet
 from database import SessionLocal
 
 
@@ -19,7 +19,7 @@ def verify_password(password: str, hashed: str) -> bool:
     return h == hashlib.sha256((salt + password).encode()).hexdigest()
 
 
-def create_user(full_name: str, email: str, phone: str, password: str) -> User:
+def create_user(full_name: str, email: str, phone: str, password: str) -> User | None:
     db = SessionLocal()
     try:
         existing = db.query(User).filter(User.email == email).first()
@@ -32,6 +32,9 @@ def create_user(full_name: str, email: str, phone: str, password: str) -> User:
             password_hash=hash_password(password),
         )
         db.add(user)
+        db.flush()
+        wallet = Wallet(user_id=user.id, balance=0.00)
+        db.add(wallet)
         db.commit()
         db.refresh(user)
         return user
@@ -44,6 +47,8 @@ def authenticate_user(email: str, password: str) -> User | None:
     try:
         user = db.query(User).filter(User.email == email).first()
         if not user or not verify_password(password, user.password_hash):
+            return None
+        if not user.is_active:
             return None
         return user
     finally:
@@ -121,3 +126,20 @@ def get_user_by_email(email: str) -> User | None:
         return db.query(User).filter(User.email == email).first()
     finally:
         db.close()
+
+
+def get_wallet(user_id: int):
+    db = SessionLocal()
+    try:
+        return db.query(Wallet).filter(Wallet.user_id == user_id).first()
+    finally:
+        db.close()
+
+
+def is_admin(user: User) -> bool:
+    return user.role == "admin"
+
+
+def require_admin(user: User):
+    if not is_admin(user):
+        raise PermissionError("Admin access required")

@@ -1,0 +1,207 @@
+{% extends "admin_base.html" %}
+{% block title %}Deposits — Admin{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+  <h1 class="text-2xl font-bold mb-6">Deposit Requests</h1>
+
+  {% if message %}
+  <div class="flash-message flash-{{ 'success' if success else 'error' }} mb-4">
+    <i data-lucide="{{ 'check-circle' if success else 'alert-circle' }}" size="16"></i>
+    <span>{{ message }}</span>
+  </div>
+  {% endif %}
+
+  <h2 class="text-lg font-semibold mb-4" style="color:var(--warning)">⏳ Pending Approvals</h2>
+  {% if pending_deposits %}
+  <div class="space-y-4 mb-8">
+    {% for txn in pending_deposits %}
+    <div class="card">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-semibold">Deposit #{{ txn.id }}</h3>
+          <p class="text-sm" style="color:var(--text-muted)">{{ txn.created_at.strftime("%b %d, %Y %H:%M") if txn.created_at else "" }}</p>
+        </div>
+        <span class="status-badge status-{{ txn.status }}">{{ txn.status }}</span>
+      </div>
+
+      <div class="detail-grid mb-4">
+        <div class="detail-item">
+          <span class="detail-label">User</span>
+          <span class="detail-value">{{ txn.user.full_name if txn.user else "Unknown" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Email</span>
+          <span class="detail-value">{{ txn.user.email if txn.user else "-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Amount</span>
+          <span class="detail-value" style="color:var(--success)">{{ "%.2f"|format(txn.amount) }} ETB</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Receipt No</span>
+          <span class="detail-value">{{ txn.receipt_no or "-" }}</span>
+        </div>
+        {% if txn.payer_name %}
+        <div class="detail-item">
+          <span class="detail-label">Payer</span>
+          <span class="detail-value">{{ txn.payer_name }}</span>
+        </div>
+        {% endif %}
+        {% if txn.payer_phone %}
+        <div class="detail-item">
+          <span class="detail-label">Payer Phone</span>
+          <span class="detail-value">{{ txn.payer_phone }}</span>
+        </div>
+        {% endif %}
+        {% if txn.total_paid %}
+        <div class="detail-item">
+          <span class="detail-label">Total Paid</span>
+          <span class="detail-value">{{ "%.2f"|format(txn.total_paid) }} ETB</span>
+        </div>
+        {% endif %}
+        {% if txn.service_fee %}
+        <div class="detail-item">
+          <span class="detail-label">Service Fee ({{ service_fee_percent }}%)</span>
+          <span class="detail-value" style="color:var(--warning)">{{ "%.2f"|format(txn.service_fee) }} ETB</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">To Credit</span>
+          <span class="detail-value" style="color:var(--teal)">{{ "%.2f"|format(txn.amount - txn.service_fee) }} ETB</span>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="flex gap-3 mt-4">
+        <form method="POST" action="/admin/deposits/{{ txn.id }}/approve" style="display:inline;">
+          <button type="submit" class="btn-success btn-sm" onclick="return confirm('Approve this deposit?')">
+            <i data-lucide="check" size="16"></i>Approve
+          </button>
+        </form>
+        <button class="btn-danger btn-sm" onclick="showRejectForm({{ txn.id }})">
+          <i data-lucide="x" size="16"></i>Reject
+        </button>
+      </div>
+
+      <div id="reject-form-{{ txn.id }}" class="mt-4" style="display:none;">
+        <form method="POST" action="/admin/deposits/{{ txn.id }}/reject" class="space-y-3">
+          <textarea name="reason" required placeholder="Reason for rejection..." class="input-field" rows="2" maxlength="500"></textarea>
+          <div class="flex gap-2">
+            <button type="submit" class="btn-danger btn-sm">Confirm Reject</button>
+            <button type="button" class="btn-secondary btn-sm" onclick="hideRejectForm({{ txn.id }})">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state glass p-12 mb-8">
+    <i data-lucide="inbox" size="48" style="color:var(--text-muted); opacity:0.5; margin-bottom:16px;"></i>
+    <h3 class="text-lg font-medium mb-2">No pending deposits</h3>
+    <p style="color:var(--text-muted)">All deposit requests have been processed.</p>
+  </div>
+  {% endif %}
+
+  <hr class="divider">
+
+  <h2 class="text-lg font-semibold mb-4 mt-8" style="color:var(--warning)">⚠️ Disputed Transactions</h2>
+  {% if disputed_deposits %}
+  <div class="space-y-4">
+    {% for txn in disputed_deposits %}
+    <div class="card" style="border-left:4px solid var(--warning);">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-semibold">Deposit #{{ txn.id }} — Disputed</h3>
+          <p class="text-sm" style="color:var(--text-muted)">{{ txn.created_at.strftime("%b %d, %Y %H:%M") if txn.created_at else "" }}</p>
+        </div>
+        <span class="status-badge status-disputed">disputed</span>
+      </div>
+
+      <div class="detail-grid mb-4">
+        <div class="detail-item">
+          <span class="detail-label">User</span>
+          <span class="detail-value">{{ txn.user.full_name if txn.user else "Unknown" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Amount</span>
+          <span class="detail-value">{{ "%.2f"|format(txn.amount) }} ETB</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Receipt</span>
+          <span class="detail-value">{{ txn.receipt_no or "-" }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Payer</span>
+          <span class="detail-value">{{ txn.payer_name or "-" }}</span>
+        </div>
+      </div>
+
+      {% if txn.dispute_reason %}
+      <div class="mb-4 p-3 rounded-lg" style="background:var(--bg-card);">
+        <p class="text-xs font-semibold mb-1" style="color:var(--warning)">User's Dispute Reason:</p>
+        <p class="text-sm">{{ txn.dispute_reason }}</p>
+      </div>
+      {% endif %}
+
+      <div class="flex gap-3 mt-4">
+        <button class="btn-success btn-sm" onclick="showCloseForm({{ txn.id }})">
+          <i data-lucide="check-circle" size="16"></i>Close Dispute
+        </button>
+        <button class="btn-danger btn-sm" onclick="showRejectAgainForm({{ txn.id }})">
+          <i data-lucide="x-circle" size="16"></i>Reject Again
+        </button>
+      </div>
+
+      <div id="close-form-{{ txn.id }}" class="mt-4" style="display:none;">
+        <form method="POST" action="/admin/disputes/{{ txn.id }}/close" class="space-y-3">
+          <textarea name="note" placeholder="Optional closing note..." class="input-field" rows="2" maxlength="500"></textarea>
+          <div class="flex gap-2">
+            <button type="submit" class="btn-success btn-sm">Confirm Close</button>
+            <button type="button" class="btn-secondary btn-sm" onclick="hideCloseForm({{ txn.id }})">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="reject-again-form-{{ txn.id }}" class="mt-4" style="display:none;">
+        <form method="POST" action="/admin/disputes/{{ txn.id }}/reject-again" class="space-y-3">
+          <textarea name="reason" required placeholder="Reason for rejecting dispute..." class="input-field" rows="2" maxlength="500"></textarea>
+          <div class="flex gap-2">
+            <button type="submit" class="btn-danger btn-sm">Confirm Reject Dispute</button>
+            <button type="button" class="btn-secondary btn-sm" onclick="hideRejectAgainForm({{ txn.id }})">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state glass p-12">
+    <i data-lucide="check-circle" size="48" style="color:var(--text-muted); opacity:0.5; margin-bottom:16px;"></i>
+    <h3 class="text-lg font-medium mb-2">No disputed transactions</h3>
+    <p style="color:var(--text-muted)">All disputes have been resolved.</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function showRejectForm(id) {
+  document.getElementById('reject-form-' + id).style.display = 'block';
+}
+function hideRejectForm(id) {
+  document.getElementById('reject-form-' + id).style.display = 'none';
+}
+function showCloseForm(id) {
+  document.getElementById('close-form-' + id).style.display = 'block';
+}
+function hideCloseForm(id) {
+  document.getElementById('close-form-' + id).style.display = 'none';
+}
+function showRejectAgainForm(id) {
+  document.getElementById('reject-again-form-' + id).style.display = 'block';
+}
+function hideRejectAgainForm(id) {
+  document.getElementById('reject-again-form-' + id).style.display = 'none';
+}
+</script>
+{% endblock %}
