@@ -1,41 +1,72 @@
 # Telegram Bot Boilerplate
 
-A minimal, working Telegram bot boilerplate for **Vercel** (serverless, webhook).
+A production-ready Telegram bot boilerplate for **Vercel** (serverless, webhook) with built-in **web authentication** — sign up, log in, Telegram linking, and a polished UI.
 
-Fork it, deploy, and start building your bot — no setup headaches.
+Drop it in, swap the logic, add your features. Reusable for any Telegram bot project.
 
 ## What's Inside
 
-- `/webhook` — handles incoming Telegram updates (example: `/start` → "Hello World")
-- `/dashboard` — live status page to verify the bot is healthy
-- `/api/test-webhook` — JSON endpoint for uptime monitoring
+### Bot (Telegram)
+- `/start` — welcome message
+- `/help` — available commands
+- `/login` — get web login URL
+- `/link <email> <password>` — link Telegram to your web account
+- `/logoff` — disconnect Telegram from your account
 
-Built with FastAPI + python-telegram-bot. Deploys on Vercel free tier. ~90 lines.
+### Web (FastAPI)
+- **Landing page** — professional glassmorphism design with dark/light mode
+- **Sign up** — full name, email, phone, password
+- **Log in** — email + password
+- **Dashboard** — account details + Telegram connection status
+- **Log out** — session cleanup
 
-## Why
+### Stack
+- **Backend**: FastAPI + python-telegram-bot + SQLAlchemy + SQLite
+- **Frontend**: TailwindCSS + Lucide icons + glassmorphism
+- **Deploy**: Vercel (serverless, webhook)
+- **Database**: SQLite (`/tmp/trusted.db`, configurable via `DB_PATH` env var)
 
-Old `python-telegram-bot` versions break on Vercel's Python runtime. This repo solves that — latest PTB, no vendored dependency conflicts, async-native, serverless-friendly.
-
-Fork it, swap the command logic, add your features. That's it.
+### Color Palette
+`#1B325F` `#5E9FA3` `#DCD1B4` `#FAB87F` `#F87E7B` `#B05574`
 
 ## Quick Start
 
 1. Fork, push to GitHub, import into Vercel
-2. Set `TOKEN` env var (from [@BotFather](https://t.me/botfather))
+2. Set environment variables in Vercel:
+   - `TOKEN` — from [@BotFather](https://t.me/botfather)
+   - `BASE_URL` — your Vercel deployment URL
 3. Deploy, then register webhook:
-
 ```bash
 curl -X POST "https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<VERCEL_URL>/webhook"
 ```
-
-Done. Your bot is live.
+4. Visit your Vercel URL — landing page is live
 
 ## Local Dev
 
 ```bash
+git clone <repo>
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt uvicorn
 export TOKEN=<token>
+export BASE_URL=http://localhost:8000
 uvicorn api.index:app --reload --port 8000
+```
+
+## Project Structure
+
+```
+├── api/
+│   ├── index.py              # FastAPI app + routes
+│   ├── database.py           # SQLAlchemy engine
+│   ├── models.py             # User + Session models
+│   ├── auth.py               # Password hashing, sessions, Telegram link
+│   ├── features/
+│   │   ├── __init__.py       # Re-exports handle_update
+│   │   └── commands.py       # Bot command handlers
+│   └── web/
+│       ├── __init__.py
+│       └── templates.py      # HTML templates (Tailwind + Lucide)
+├── vercel.json
+└── requirements.txt
 ```

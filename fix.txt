@@ -1,0 +1,114 @@
+The error is clear: **`ModuleNotFoundError: No module named 'features'`** — but the traceback shows the issue is actually in **`api/features/__init__.py`**, not in your manual import code.
+
+Here's what's happening and how to fix it:
+
+## The Root Cause
+
+In `/var/task/api/features/__init__.py` at line 1:
+```python
+from .commands import handle_update
+```
+
+This **relative import** (`.commands`) is failing because when Python executes `api/features/__init__.py` as part of the package, the parent package `features` isn't properly registered in `sys.modules` — likely because your manual `importlib` loading in `api/index.py` is bypassing normal package resolution.
+
+## The Fix
+
+You have **two options**:
+
+### Option 1: Fix the relative import (Recommended)
+
+In `api/features/__init__.py`, change:
+```python
+# FROM (relative import — breaks with manual importlib loading)
+from .commands import handle_update
+```
+
+To an **absolute import** based on your actual structure:
+```python
+# TO (absolute import)
+from api.features.commands import handle_update
+```
+
+Or if `features` is meant to be top-level:
+```python
+from features.commands import handle_update
+```
+
+### Option 2: Fix your manual import in `api/index.py`
+
+Your current manual `importlib` approach doesn't register the module as a proper package. Replace this:
+
+```python
+# BROKEN — doesn't set up package context properly
+_features_path = os.path.join(os.path.dirname(__file__), "features", "__init__.py")
+_spec = importlib.util.spec_from_file_location("features", _features_path)
+_mod = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_mod)
+handle_update = _mod.handle_update
+```
+
+With a **proper package import** (add this before importing):
+
+```python
+import sys
+import os
+
+# Ensure 'api' is in the path so Python recognizes the package structure
+_api_dir = os.path.dirname(os.path.abspath(__file__))
+if _api_dir not in sys.path:
+    sys.path.insert(0, _api_dir)
+
+# Now import normally — let Python handle the package resolution
+from api.features import handle_update
+```
+
+Or even simpler, if the working directory is correct:
+
+```python
+from features import handle_update
+```
+
+---
+
+## Quick Checklist
+
+| Check | Action |
+|-------|--------|
+| Is `api/features/commands.py` present? | Verify the file exists |
+| Is there an `api/features/__init__.py`? | Required for package imports |
+| Does `api/` have an `__init__.py`? | Needed if using `api.features` |
+| Vercel deployment structure | Files must be in `api/` directory at build time |
+
+## Most Likely Fix for Vercel
+
+Since this is on Vercel, the cleanest solution is usually:
+
+**`api/index.py`:**
+```python
+# Add parent to path if needed, then normal import
+from features import handle_update
+```
+
+**`api/features/__init__.py`:**
+```python
+from features.commands import handle_update  # absolute, not relative
+```
+
+Or if you want to keep it as a package:
+
+**`api/features/__init__.py`:**
+```python
+from .commands import handle_update  # keep relative
+```
+
+**`api/index.py`:**
+```python
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'features'))
+from features import handle_update
+```
+
+---
+
+Which option fits your project structure? If you can share your directory tree (`tree api/` or `ls -R api/`), I can give you the exact import paths.

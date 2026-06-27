@@ -1,4 +1,0 @@
-sqlite3.OperationalError: unable to open database file — Vercel read-only filesystem.
-
-Fix: changed DB_PATH from "trusted.db" (relative, /var/task/) to "/tmp/trusted.db" (writable on Vercel).
-Also supports DB_PATH env var override.
