@@ -5,7 +5,7 @@ webhook.txt
 trace.txt
 install.txt
 .env
-example.html
+# example.html is required at runtime for Telebirr fingerprint verification
 prompt.txt
 TODO.md
 fix.txt
