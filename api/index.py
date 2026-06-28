@@ -61,7 +61,7 @@ if os.path.isdir(static_dir):
 def on_startup():
     init_db()
     _ensure_admin_settings()
-    _cleanup_seed()
+    _seed_admin_from_file()
 
 
 def _ensure_admin_settings():
@@ -76,19 +76,55 @@ def _ensure_admin_settings():
         db.close()
 
 
-def _cleanup_seed():
+def _seed_admin_from_file():
     seed_dir = os.path.dirname(__file__)
-    flag = os.path.join(seed_dir, "seed_done.flag")
+    admin_path = os.path.join(seed_dir, "admin.txt")
     seed_py = os.path.join(seed_dir, "seed.py")
-    if os.path.exists(flag):
+
+    if not os.path.exists(admin_path):
+        return
+
+    with open(admin_path) as f:
+        creds = f.read().strip()
+
+    if ":" not in creds:
+        return
+
+    email, password = creds.split(":", 1)
+
+    from auth import hash_password, get_user_by_email
+    from models import User, Wallet
+    from database import SessionLocal
+
+    existing = get_user_by_email(email)
+    if existing:
+        os.remove(admin_path)
+        print(f"Admin {email} already exists — cleaned up admin.txt.")
+    else:
+        db = SessionLocal()
         try:
-            if os.path.exists(seed_py):
-                os.remove(seed_py)
-                print(f"seed.py deleted after successful seeding.")
-            os.remove(flag)
-            print(f"seed_done.flag cleaned up.")
-        except Exception as e:
-            print(f"seed cleanup error: {e}")
+            user = User(
+                full_name="Admin",
+                email=email,
+                phone="0000000000",
+                password_hash=hash_password(password),
+                role="admin",
+            )
+            db.add(user)
+            db.flush()
+            wallet = Wallet(user_id=user.id, balance=0.00)
+            db.add(wallet)
+            db.commit()
+            db.refresh(user)
+            print(f"Admin {email} created (id={user.id}).")
+        finally:
+            db.close()
+        os.remove(admin_path)
+        print("admin.txt deleted after seeding.")
+
+    if os.path.exists(seed_py):
+        os.remove(seed_py)
+        print("seed.py deleted after seeding.")
 
 
 def _get_user_from_cookie(request: Request) -> User | None:
