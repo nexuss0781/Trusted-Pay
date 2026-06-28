@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Trusted{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="stylesheet" href="/static/css/style.css">
+  {% block extra_head %}{% endblock %}
+  <style>
+  .user-sidebar { width: 240px; min-height: 100vh; position: fixed; left: 0; top: 0; z-index: 40; }
+  .user-main { margin-left: 240px; min-height: 100vh; }
+  .sidebar-link { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 10px; font-size: 0.9rem; color: var(--text-muted); text-decoration: none; transition: all 0.2s; }
+  .sidebar-link:hover { color: var(--text); background: var(--bg-card); }
+  .sidebar-link.active { color: var(--teal); background: rgba(94,159,163,0.12); font-weight: 600; }
+  @media (max-width: 768px) {
+    .user-sidebar { display: none; }
+    .user-main { margin-left: 0; }
+    .mobile-nav { display: flex !important; }
+  }
+  .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; padding: 8px 12px; border-top: 1px solid var(--border); }
+  </style>
+</head>
+<body class="bg-gradient">
+  <!-- Sidebar -->
+  <div class="user-sidebar glass" style="border-right:1px solid var(--border); padding:24px; display:flex; flex-direction:column;">
+    <a href="/dashboard" class="flex items-center gap-2 text-lg font-bold mb-8" style="color:var(--teal)">
+      <i data-lucide="shield-check" size="22"></i>
+      <span>Trusted</span>
+    </a>
+
+    <nav class="space-y-1 flex-1">
+      <a href="/dashboard" class="sidebar-link {% if active_page == 'dashboard' %}active{% endif %}">
+        <i data-lucide="layout-dashboard" size="18"></i>Dashboard
+      </a>
+      <a href="/deposit" class="sidebar-link {% if active_page == 'deposit' %}active{% endif %}">
+        <i data-lucide="arrow-down-left" size="18"></i>Deposit
+      </a>
+      <a href="#" class="sidebar-link" onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-withdraw'))">
+        <i data-lucide="arrow-up-right" size="18"></i>Withdraw
+      </a>
+      <a href="/status" class="sidebar-link {% if active_page == 'status' %}active{% endif %}">
+        <i data-lucide="clock" size="18"></i>History
+      </a>
+    </nav>
+
+    <div class="pt-4" style="border-top:1px solid var(--border);">
+      <div class="flex items-center gap-3 px-3 py-2 mb-3">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(94,159,163,0.15); color:var(--teal)">
+          <i data-lucide="user" size="16"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium truncate">{{ user.full_name if user else "" }}</p>
+          <p class="text-xs" style="color:var(--text-muted)">{{ user.email if user else "" }}</p>
+        </div>
+      </div>
+      <a href="/logout" class="sidebar-link" style="color:var(--text-muted);" onmouseover="this.style.color='var(--error)'" onmouseout="this.style.color='var(--text-muted)'">
+        <i data-lucide="log-out" size="18"></i>Log out
+      </a>
+    </div>
+  </div>
+
+  <!-- Mobile bottom nav -->
+  <div class="mobile-nav glass">
+    <div class="flex items-center justify-around">
+      <a href="/dashboard" class="flex flex-col items-center gap-1 text-xs" style="color:{% if active_page == 'dashboard' %}var(--teal){% else %}var(--text-muted){% endif %}; padding:6px 12px;">
+        <i data-lucide="layout-dashboard" size="20"></i>Home
+      </a>
+      <a href="/deposit" class="flex flex-col items-center gap-1 text-xs" style="color:{% if active_page == 'deposit' %}var(--teal){% else %}var(--text-muted){% endif %}; padding:6px 12px;">
+        <i data-lucide="arrow-down-left" size="20"></i>Deposit
+      </a>
+      <a href="#" class="flex flex-col items-center gap-1 text-xs" style="color:var(--text-muted); padding:6px 12px;" onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-withdraw'))">
+        <i data-lucide="arrow-up-right" size="20"></i>Withdraw
+      </a>
+      <a href="/status" class="flex flex-col items-center gap-1 text-xs" style="color:{% if active_page == 'status' %}var(--teal){% else %}var(--text-muted){% endif %}; padding:6px 12px;">
+        <i data-lucide="clock" size="20"></i>History
+      </a>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="user-main" style="padding:32px;">
+    {% block content %}{% endblock %}
+  </div>
+
+  <script>
+    let dark = localStorage.getItem('theme') !== 'light';
+    document.documentElement.classList.toggle('light', !dark);
+    lucide.createIcons();
+  </script>
+
+  <div id="sidebar-withdraw-modal"></div>
+  <script>
+    window.addEventListener('open-withdraw', function() {
+      const modal = document.getElementById('withdrawModal');
+      if (modal) modal.classList.add('active');
+    });
+  </script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

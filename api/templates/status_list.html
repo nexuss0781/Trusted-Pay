@@ -1,20 +1,8 @@
-{% extends "base.html" %}
-{% block title %}Transaction Status — Trusted{% endblock %}
-
-{% block nav_links %}
-<span class="text-sm" style="color:var(--text-muted)">{{ user.full_name }}</span>
-<a href="/dashboard" class="text-sm font-medium hover:opacity-80 transition" style="color:var(--text-muted)">Dashboard</a>
-<a href="/logout" class="btn-secondary text-sm !py-2 !px-4">
-  <i data-lucide="log-out" size="16"></i>Log out
-</a>
-<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-  <i data-lucide="moon" size="18" id="theme-icon"></i>
-</button>
-{% endblock %}
+{% extends "user_base.html" %}
+{% block title %}Transaction History — Trusted{% endblock %}
 
 {% block content %}
-<div class="dash-container" style="padding-top:100px">
-  <div class="animate-in">
+<div class="animate-in">
     <div class="flex items-center justify-between mb-8">
       <div>
         <h1 class="text-2xl font-bold">Transaction History</h1>
@@ -70,5 +58,4 @@
     </div>
     {% endif %}
   </div>
-</div>
 {% endblock %}

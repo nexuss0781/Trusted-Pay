@@ -1,20 +1,8 @@
-{% extends "base.html" %}
+{% extends "user_base.html" %}
 {% block title %}Deposit — Trusted{% endblock %}
 
-{% block nav_links %}
-<span class="text-sm" style="color:var(--text-muted)">{{ user.full_name }}</span>
-<a href="/dashboard" class="text-sm font-medium hover:opacity-80 transition" style="color:var(--text-muted)">Dashboard</a>
-<a href="/logout" class="btn-secondary text-sm !py-2 !px-4">
-  <i data-lucide="log-out" size="16"></i>Log out
-</a>
-<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-  <i data-lucide="moon" size="18" id="theme-icon"></i>
-</button>
-{% endblock %}
-
 {% block content %}
-<div class="dash-container" style="padding-top:100px">
-  <div class="animate-in" style="max-width:600px; margin:0 auto;">
+<div class="animate-in" style="max-width:600px; margin:0 auto;">
     <div class="flex items-center gap-4 mb-8">
       <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:rgba(34,197,94,0.15); color:var(--success)">
         <i data-lucide="arrow-down-left" size="28"></i>
@@ -84,5 +72,4 @@
     </div>
     {% endif %}
   </div>
-</div>
 {% endblock %}

@@ -1,21 +1,8 @@
-{% extends "base.html" %}
+{% extends "user_base.html" %}
 {% block title %}Transaction #{{ txn.id }} — Trusted{% endblock %}
 
-{% block nav_links %}
-<span class="text-sm" style="color:var(--text-muted)">{{ user.full_name }}</span>
-<a href="/dashboard" class="text-sm font-medium hover:opacity-80 transition" style="color:var(--text-muted)">Dashboard</a>
-<a href="/status" class="text-sm font-medium hover:opacity-80 transition" style="color:var(--text-muted)">History</a>
-<a href="/logout" class="btn-secondary text-sm !py-2 !px-4">
-  <i data-lucide="log-out" size="16"></i>Log out
-</a>
-<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-  <i data-lucide="moon" size="18" id="theme-icon"></i>
-</button>
-{% endblock %}
-
 {% block content %}
-<div class="dash-container" style="padding-top:100px">
-  <div class="animate-in" style="max-width:700px; margin:0 auto;">
+<div class="animate-in" style="max-width:700px; margin:0 auto;">
     <a href="/status" class="text-sm font-medium mb-6 inline-block" style="color:var(--teal)">← Back to History</a>
 
     <div class="card mb-6">
@@ -191,5 +178,4 @@
     </div>
     {% endif %}
   </div>
-</div>
 {% endblock %}

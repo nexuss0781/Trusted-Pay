@@ -299,6 +299,7 @@ def dashboard(request: Request):
             "pending": pending,
         },
         "telegram_link_msg": "",
+        "active_page": "dashboard",
     })
 
 
@@ -326,6 +327,7 @@ def deposit_get(request: Request):
     return templates.TemplateResponse(request, "deposit.html", {
         "user": user,
         "base_phone": settings.base_phone_number if settings else "",
+        "active_page": "deposit",
     })
 
 
@@ -338,6 +340,7 @@ async def deposit_post(request: Request, receipt_number: str = Form(...)):
         return templates.TemplateResponse(request, "deposit.html", {
             "user": user,
             "success": False, "message": "Your account is frozen. Cannot process deposits.",
+            "active_page": "deposit",
         })
 
     receipt_number = receipt_number.strip()
@@ -346,6 +349,7 @@ async def deposit_post(request: Request, receipt_number: str = Form(...)):
                 "user": user,
             "success": False,
             "message": "Receipt number is required.",
+            "active_page": "deposit",
         })
 
     result = await verify_receipt(receipt_number)
@@ -354,6 +358,7 @@ async def deposit_post(request: Request, receipt_number: str = Form(...)):
                 "user": user,
             "success": False,
             "message": result.get("error", "Receipt verification failed."),
+            "active_page": "deposit",
         })
 
     details = result["details"]
@@ -367,6 +372,7 @@ async def deposit_post(request: Request, receipt_number: str = Form(...)):
                 "user": user,
             "success": False,
             "message": receiver_error,
+            "active_page": "deposit",
         })
 
     fee_percent = settings.service_fee_percent if settings else Decimal("0.00")
@@ -402,6 +408,7 @@ async def deposit_post(request: Request, receipt_number: str = Form(...)):
             "success": True,
             "message": "Deposit request submitted successfully!",
             "txn": txn,
+            "active_page": "deposit",
         })
     finally:
         db.close()
@@ -496,6 +503,7 @@ def status_list(request: Request, page: int = 1):
         "transactions": transactions,
         "page": page,
         "total_pages": total_pages,
+        "active_page": "status",
     })
 
 
@@ -519,6 +527,7 @@ def status_detail(request: Request, txn_id: int):
         "user": user,
         "txn": txn,
         "dispute_submitted": False,
+        "active_page": "status",
     })
 
 

@@ -1,20 +1,8 @@
-{% extends "base.html" %}
+{% extends "user_base.html" %}
 {% block title %}Dashboard — Trusted{% endblock %}
 
-{% block nav_links %}
-<span class="text-sm" style="color:var(--text-muted)">{{ user.full_name }}</span>
-<a href="/status" class="text-sm font-medium hover:opacity-80 transition" style="color:var(--text-muted)">History</a>
-<a href="/logout" class="btn-secondary text-sm !py-2 !px-4">
-  <i data-lucide="log-out" size="16"></i>Log out
-</a>
-<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-  <i data-lucide="moon" size="18" id="theme-icon"></i>
-</button>
-{% endblock %}
-
 {% block content %}
-<div class="dash-container" style="padding-top:100px">
-  <div class="animate-in">
+<div class="animate-in">
 
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
@@ -208,7 +196,6 @@
     </div>
 
   </div>
-</div>
 
 <!-- Withdraw Modal -->
 <div class="modal-overlay" id="withdrawModal">
