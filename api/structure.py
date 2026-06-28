@@ -13,9 +13,12 @@ import os
 
 
 def _load_example() -> str:
-    path = os.path.join(os.path.dirname(__file__), "..", "example.html")
-    with open(path, "r", encoding="utf-8") as f:
-        return f.read()
+    path = os.path.join(os.path.dirname(__file__), "example.html")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        return ""
 
 
 EXAMPLE_HTML = _load_example()
