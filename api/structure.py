@@ -10,15 +10,78 @@ differ between receipts.
 
 import re
 import os
+import sys
+
+
+def _candidates() -> list[str]:
+    """Return candidate paths for example.html in priority order."""
+    dirs = set()
+
+    # Where this file (structure.py) lives
+    dirs.add(os.path.dirname(os.path.abspath(__file__)))
+
+    # Parent of that directory (project root)
+    dirs.add(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+    # Current working directory
+    try:
+        dirs.add(os.getcwd())
+    except Exception:
+        pass
+
+    # Module search paths
+    for p in sys.path:
+        if p:
+            dirs.add(os.path.abspath(p))
+
+    candidates = []
+    for d in sorted(dirs):
+        candidates.append(os.path.join(d, "example.html"))
+    return candidates
 
 
 def _load_example() -> str:
-    path = os.path.join(os.path.dirname(__file__), "example.html")
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return f.read()
-    except FileNotFoundError:
-        return ""
+    tried = []
+    for path in _candidates():
+        tried.append(path)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read()
+                if len(content) > 500:
+                    return content
+        except FileNotFoundError:
+            continue
+        except Exception:
+            continue
+
+    # Diagnostic — show where we looked
+    _path_diag = "\n".join(f"  ❌ {p}" for p in tried)
+    print(
+        f"[structure.py] WARNING: example.html not found at any candidate path.\n"
+        f"  Tried:\n{_path_diag}\n"
+        f"  Fingerprint verification will be skipped.",
+        file=sys.stderr,
+    )
+    return ""
+
+
+def diagnose_paths() -> str:
+    """Return a human-readable path diagnosis."""
+    lines = ["=== Path Diagnosis ==="]
+    lines.append(f"__file__:       {__file__}")
+    lines.append(f"abspath:        {os.path.abspath(__file__)}")
+    lines.append(f"dirname:        {os.path.dirname(os.path.abspath(__file__))}")
+    lines.append(f"parent dir:     {os.path.dirname(os.path.dirname(os.path.abspath(__file__)))}")
+    lines.append(f"cwd:            {os.getcwd()}")
+    lines.append("")
+    lines.append("Candidate paths:")
+    for p in _candidates():
+        exists = os.path.isfile(p)
+        size = os.path.getsize(p) if exists else 0
+        lines.append(f"  {'✅' if exists else '❌'} {p}  ({size} bytes)" if exists else f"  ❌ {p}")
+    lines.append("")
+    lines.append(f"EXAMPLE_HTML loaded: {'✅' if len(EXAMPLE_HTML) > 500 else '❌'} ({len(EXAMPLE_HTML)} chars)")
+    return "\n".join(lines)
 
 
 EXAMPLE_HTML = _load_example()
@@ -231,6 +294,13 @@ def verify_telebirr_structure(html: str) -> tuple[bool, list[str]]:
     """
     if not html or len(html) < 500:
         return False, ["HTML too short or empty"]
+
+    if not EXAMPLE_HTML:
+        err = (
+            "Fingerprint reference (example.html) not loaded. "
+            "Run diagnose_paths() to see where the system looked."
+        )
+        return False, [err]
 
     errors = []
 
