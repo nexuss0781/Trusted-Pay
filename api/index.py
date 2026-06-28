@@ -61,6 +61,7 @@ if os.path.isdir(static_dir):
 def on_startup():
     init_db()
     _ensure_admin_settings()
+    _cleanup_seed()
 
 
 def _ensure_admin_settings():
@@ -73,6 +74,21 @@ def _ensure_admin_settings():
             db.commit()
     finally:
         db.close()
+
+
+def _cleanup_seed():
+    seed_dir = os.path.dirname(__file__)
+    flag = os.path.join(seed_dir, "seed_done.flag")
+    seed_py = os.path.join(seed_dir, "seed.py")
+    if os.path.exists(flag):
+        try:
+            if os.path.exists(seed_py):
+                os.remove(seed_py)
+                print(f"seed.py deleted after successful seeding.")
+            os.remove(flag)
+            print(f"seed_done.flag cleaned up.")
+        except Exception as e:
+            print(f"seed cleanup error: {e}")
 
 
 def _get_user_from_cookie(request: Request) -> User | None:
