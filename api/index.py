@@ -48,7 +48,7 @@ from auth import (
 )
 from models import User, Transaction, AdminSettings, ActivityLog, UserRestriction, Wallet
 from database import SessionLocal
-from telebirr import verify_receipt
+from telebirr import verify_receipt, validate_receiver
 from logger import log_action
 
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
@@ -69,7 +69,7 @@ def _ensure_admin_settings():
     try:
         settings = db.query(AdminSettings).first()
         if not settings:
-            settings = AdminSettings(service_fee_percent=0.00, base_phone_number="")
+            settings = AdminSettings(service_fee_percent=0.00, base_phone_number="", full_name="")
             db.add(settings)
             db.commit()
     finally:
@@ -341,6 +341,14 @@ async def deposit_post(request: Request, receipt_number: str = Form(...)):
     total_paid = details.get("total_paid_num")
 
     settings = _get_settings()
+    receiver_valid, receiver_error = validate_receiver(settings, details)
+    if not receiver_valid:
+        return templates.TemplateResponse(request, "deposit.html", {
+                "user": user,
+            "success": False,
+            "message": receiver_error,
+        })
+
     fee_percent = settings.service_fee_percent if settings else Decimal("0.00")
     service_fee = Decimal("0.00")
     if fee_percent > 0 and amount:
@@ -953,6 +961,7 @@ async def admin_settings_post(
     request: Request,
     service_fee_percent: str = Form("0"),
     base_phone_number: str = Form(""),
+    full_name: str = Form(""),
 ):
     user, error = _get_admin_or_redirect(request)
     if error:
@@ -968,11 +977,13 @@ async def admin_settings_post(
         except Exception:
             settings.service_fee_percent = Decimal("0.00")
         settings.base_phone_number = base_phone_number.strip()
+        settings.full_name = full_name.strip()
         settings.updated_at = datetime.datetime.utcnow()
         db.commit()
         log_action(user.id, "admin.settings.update", {
             "service_fee_percent": service_fee_percent,
             "base_phone_number": base_phone_number.strip(),
+            "full_name": full_name.strip(),
         })
     finally:
         db.close()

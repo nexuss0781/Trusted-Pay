@@ -80,6 +80,7 @@ class AdminSettings(Base):
     id = Column(Integer, primary_key=True, index=True)
     service_fee_percent = Column(Numeric(5, 2), nullable=False, default=0.00)
     base_phone_number = Column(String(20), nullable=True)
+    full_name = Column(String(100), nullable=True)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
 

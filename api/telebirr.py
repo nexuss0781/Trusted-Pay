@@ -179,6 +179,33 @@ def extract_details(html: str) -> dict | None:
         return None
 
 
+def _last4(phone: str) -> str:
+    digits = re.sub(r"\D", "", phone or "")
+    return digits[-4:] if len(digits) >= 4 else ""
+
+
+def validate_receiver(settings, details: dict) -> tuple[bool, str]:
+    if not settings or not details:
+        return True, ""
+    expected_name = (settings.full_name or "").strip().lower()
+    expected_phone_last4 = _last4(settings.base_phone_number or "")
+    if not expected_name and not expected_phone_last4:
+        return True, ""
+
+    receiver_name = (details.get("receiver_name") or "").strip()
+    receiver_phone = details.get("receiver_phone") or ""
+    receiver_last4 = _last4(receiver_phone)
+
+    errors = []
+    if expected_name and receiver_name.lower() != expected_name:
+        errors.append(f"Receiver name mismatch: got '{receiver_name}', expected '{settings.full_name}'")
+    if expected_phone_last4 and receiver_last4 != expected_phone_last4:
+        errors.append(f"Receiver phone last 4 digits mismatch: got '{receiver_last4}', expected '{expected_phone_last4}'")
+    if errors:
+        return False, "; ".join(errors)
+    return True, ""
+
+
 async def verify_receipt(receipt_number: str) -> dict:
     html = await fetch_receipt(receipt_number)
     if not html:

@@ -21,6 +21,11 @@
         <p class="text-xs mt-1" style="color:var(--text-muted)">Percentage deducted from deposits before crediting user wallet. Default: 0%</p>
       </div>
       <div>
+        <label class="text-sm font-medium block mb-2" style="color:var(--text-muted)">Full Name (lowercase)</label>
+        <input type="text" name="full_name" value="{{ settings.full_name if settings else '' }}" class="input-field" placeholder="abebe kebede" maxlength="100">
+        <p class="text-xs mt-1" style="color:var(--text-muted)">The exact full name on the Telebirr account (normalised to lowercase).</p>
+      </div>
+      <div>
         <label class="text-sm font-medium block mb-2" style="color:var(--text-muted)">Base Telebirr Phone Number</label>
         <input type="text" name="base_phone_number" value="{{ settings.base_phone_number if settings else '' }}" class="input-field" placeholder="+251 9XX XXX XXX" maxlength="20">
         <p class="text-xs mt-1" style="color:var(--text-muted)">The main account where users send deposits.</p>
