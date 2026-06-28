@@ -246,7 +246,8 @@ async def login_post(
         return templates.TemplateResponse(request, "login.html", {"error": "Invalid email or password."})
     token = create_session_token(user.id)
     log_action(user.id, "user.login", {"email": email})
-    resp = RedirectResponse(url="/dashboard", status_code=303)
+    redirect_url = "/admin" if user.role == "admin" else "/dashboard"
+    resp = RedirectResponse(url=redirect_url, status_code=303)
     resp.set_cookie(key="session", value=token, httponly=True, max_age=86400 * 7, samesite="lax")
     return resp
 
@@ -259,6 +260,8 @@ def dashboard(request: Request):
     if not user.is_active:
         resp = RedirectResponse(url="/logout")
         return resp
+    if user.role == "admin":
+        return RedirectResponse(url="/admin")
     wallet = get_wallet(user.id)
     db = SessionLocal()
     try:
