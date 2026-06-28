@@ -3,6 +3,7 @@
 
 {% block nav_links %}
 <span class="text-sm" style="color:var(--text-muted)">{{ user.full_name }}</span>
+<a href="/status" class="text-sm font-medium hover:opacity-80 transition" style="color:var(--text-muted)">History</a>
 <a href="/logout" class="btn-secondary text-sm !py-2 !px-4">
   <i data-lucide="log-out" size="16"></i>Log out
 </a>
@@ -14,13 +15,21 @@
 {% block content %}
 <div class="dash-container" style="padding-top:100px">
   <div class="animate-in">
-    <div class="flex items-center gap-4 mb-8">
-      <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:rgba(94,159,163,0.15); color:var(--teal)">
-        <i data-lucide="user" size="28"></i>
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:rgba(94,159,163,0.15); color:var(--teal)">
+          <i data-lucide="user" size="28"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold">Welcome, {{ user.full_name }}</h1>
+          <p style="color:var(--text-muted)" class="text-sm">Your account dashboard</p>
+        </div>
       </div>
-      <div>
-        <h1 class="text-2xl font-bold">Welcome, {{ user.full_name }}</h1>
-        <p style="color:var(--text-muted)" class="text-sm">Your account dashboard</p>
+      <div class="flex gap-2">
+        <a href="/deposit" class="btn-primary btn-sm"><i data-lucide="plus-circle" size="16"></i> Deposit</a>
+        <button class="btn-secondary btn-sm" onclick="openWithdrawModal()"><i data-lucide="arrow-up-right" size="16"></i> Withdraw</button>
       </div>
     </div>
 
@@ -39,25 +48,125 @@
     {% endif %}
 
     <!-- Wallet Balance Card -->
-    <div class="card mb-6" style="background:linear-gradient(135deg, rgba(94,159,163,0.15), rgba(27,50,95,0.15));">
+    <div class="card mb-6" style="background:linear-gradient(135deg, rgba(94,159,163,0.2), rgba(27,50,95,0.2));">
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm" style="color:var(--text-muted)">Wallet Balance</p>
           <p class="text-3xl font-bold" style="color:var(--teal)">{{ "%.2f"|format(wallet.balance if wallet else 0) }} ETB</p>
         </div>
-        <div class="flex gap-3">
+        <div class="flex gap-2">
           <a href="/deposit" class="btn-primary btn-sm">
-            <i data-lucide="plus-circle" size="16"></i>Deposit
+            <i data-lucide="plus-circle" size="16"></i> Deposit
           </a>
           <button class="btn-secondary btn-sm" onclick="openWithdrawModal()">
-            <i data-lucide="arrow-up-right" size="16"></i>Withdraw
+            <i data-lucide="arrow-up-right" size="16"></i> Withdraw
           </button>
         </div>
       </div>
     </div>
 
-    <div class="glass p-8 mb-6">
-      <h2 class="text-lg font-semibold mb-4">Account details</h2>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div class="card">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(34,197,94,0.15); color:var(--success)">
+            <i data-lucide="arrow-down-left" size="20"></i>
+          </div>
+          <div>
+            <p class="text-xs" style="color:var(--text-muted)">Total Deposits</p>
+            <p class="text-lg font-bold">{{ stats.total_deposits }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(245,158,11,0.15); color:var(--warning)">
+            <i data-lucide="arrow-up-right" size="20"></i>
+          </div>
+          <div>
+            <p class="text-xs" style="color:var(--text-muted)">Total Withdrawals</p>
+            <p class="text-lg font-bold">{{ stats.total_withdrawals }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(245,158,11,0.15); color:var(--warning)">
+            <i data-lucide="clock" size="20"></i>
+          </div>
+          <div>
+            <p class="text-xs" style="color:var(--text-muted)">Pending</p>
+            <p class="text-lg font-bold">{{ stats.pending }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <a href="/deposit" class="card text-center" style="padding:20px; text-decoration:none; color:inherit;">
+        <i data-lucide="plus-circle" size="24" style="color:var(--teal); margin-bottom:8px;"></i>
+        <p class="text-sm font-medium">Deposit</p>
+        <p class="text-xs" style="color:var(--text-muted)">Add funds</p>
+      </a>
+      <a href="#" class="card text-center" style="padding:20px; text-decoration:none; color:inherit;" onclick="openWithdrawModal(); return false;">
+        <i data-lucide="arrow-up-right" size="24" style="color:var(--warning); margin-bottom:8px;"></i>
+        <p class="text-sm font-medium">Withdraw</p>
+        <p class="text-xs" style="color:var(--text-muted)">Request payout</p>
+      </a>
+      <a href="/status" class="card text-center" style="padding:20px; text-decoration:none; color:inherit;">
+        <i data-lucide="clock" size="24" style="color:var(--text-muted); margin-bottom:8px;"></i>
+        <p class="text-sm font-medium">History</p>
+        <p class="text-xs" style="color:var(--text-muted)">View transactions</p>
+      </a>
+      <a href="#" class="card text-center" style="padding:20px; text-decoration:none; color:inherit;" onclick="alert('Contact support via Telegram bot'); return false;">
+        <i data-lucide="headphones" size="24" style="color:var(--text-muted); margin-bottom:8px;"></i>
+        <p class="text-sm font-medium">Support</p>
+        <p class="text-xs" style="color:var(--text-muted)">Get help</p>
+      </a>
+    </div>
+
+    <!-- Latest Activity -->
+    {% if transactions %}
+    <div class="card mb-6">
+      <div class="card-header">
+        <h2 class="text-lg font-semibold">Latest Activity</h2>
+        <a href="/status" class="text-sm font-medium" style="color:var(--teal)">View all →</a>
+      </div>
+      <div class="space-y-2">
+        {% for txn in transactions %}
+        <a href="/status/{{ txn.id }}" class="transaction-card card flex items-center justify-between" style="padding:14px 16px; text-decoration:none; color:inherit;">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:{% if txn.type == 'deposit' %}rgba(34,197,94,0.15){% else %}rgba(245,158,11,0.15){% endif %}; color:{% if txn.type == 'deposit' %}var(--success){% else %}var(--warning){% endif %}">
+              <i data-lucide="{% if txn.type == 'deposit' %}arrow-down-left{% else %}arrow-up-right{% endif %}" size="18"></i>
+            </div>
+            <div>
+              <p class="font-medium" style="text-transform:capitalize">{{ txn.type }}</p>
+              <p class="text-xs" style="color:var(--text-muted)">{{ txn.created_at.strftime("%b %d, %Y %H:%M") if txn.created_at else "" }}</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="font-semibold">{{ "%.2f"|format(txn.amount) }} ETB</p>
+            <span class="status-badge status-{{ txn.status }}">{{ txn.status }}</span>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="card mb-6">
+      <div class="flex flex-col items-center py-8">
+        <i data-lucide="inbox" size="48" style="color:var(--text-muted); opacity:0.4; margin-bottom:12px;"></i>
+        <p class="text-lg font-medium mb-1">No activity yet</p>
+        <p style="color:var(--text-muted)" class="text-sm">Make a deposit or withdrawal to get started.</p>
+        <a href="/deposit" class="btn-primary mt-4"><i data-lucide="plus-circle" size="16"></i> Make a Deposit</a>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Account Details -->
+    <div class="card mb-6">
+      <h2 class="text-lg font-semibold mb-4">Account Details</h2>
       <div class="space-y-3">
         <div class="flex items-center justify-between py-2" style="border-bottom:1px solid var(--border)">
           <span style="color:var(--text-muted)">Full name</span>
@@ -78,74 +187,51 @@
       </div>
     </div>
 
-    <!-- Latest Activity -->
-    {% if transactions %}
+    <!-- Telegram Connection -->
     <div class="card mb-6">
-      <div class="card-header">
-        <h2 class="text-lg font-semibold">Latest Activity</h2>
-        <a href="/status" class="text-sm font-medium" style="color:var(--teal)">View all →</a>
-      </div>
-      <div class="space-y-3">
-        {% for txn in transactions %}
-        <a href="/status/{{ txn.id }}" class="transaction-card card flex items-center justify-between" style="padding:16px; text-decoration:none; color:inherit;">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:{% if txn.type == 'deposit' %}rgba(34,197,94,0.15){% else %}rgba(245,158,11,0.15){% endif %}; color:{% if txn.type == 'deposit' %}var(--success){% else %}var(--warning){% endif %}">
-              <i data-lucide="{% if txn.type == 'deposit' %}arrow-down-left{% else %}arrow-up-right{% endif %}" size="18"></i>
-            </div>
-            <div>
-              <p class="font-medium" style="text-transform:capitalize">{{ txn.type }}</p>
-              <p class="text-xs" style="color:var(--text-muted)">{{ txn.created_at.strftime("%b %d, %Y %H:%M") if txn.created_at else "" }}</p>
-            </div>
-          </div>
-          <div class="text-right">
-            <p class="font-semibold">{{ "%.2f"|format(txn.amount) }} ETB</p>
-            <span class="status-badge status-{{ txn.status }}">{{ txn.status }}</span>
-          </div>
-        </a>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
-    <div class="glass p-8">
-      <h2 class="text-lg font-semibold mb-4">Telegram connection</h2>
+      <h2 class="text-lg font-semibold mb-4">Telegram Connection</h2>
       {% if user.telegram_chat_id %}
-      <div class="flex items-center gap-3 mb-4">
+      <div class="flex items-center gap-3 mb-2">
         <i data-lucide="check-circle" size="20" style="color:var(--teal)"></i>
         <span class="font-medium" style="color:var(--teal)">Connected</span>
       </div>
+      <p class="text-xs" style="color:var(--text-muted)">You receive notifications via Telegram.</p>
       {% else %}
-      <div class="flex items-center gap-3 mb-4">
+      <div class="flex items-center gap-3 mb-3">
         <i data-lucide="message-circle" size="20" style="color:var(--text-muted)"></i>
         <span class="font-medium">Not connected</span>
       </div>
       <p style="color:var(--text-muted)" class="text-sm">
-        Send <strong>/login</strong> to the bot to connect your Telegram account.
-        Use <strong>/logoff</strong> to disconnect.
+        Send <strong>/login</strong> to the bot to connect your Telegram account and receive real-time notifications.
       </p>
       {% endif %}
     </div>
+
   </div>
 </div>
 
 <!-- Withdraw Modal -->
 <div class="modal-overlay" id="withdrawModal">
-  <div class="modal-content glass" style="padding:32px; border-radius:16px;">
+  <div class="modal-content glass" style="padding:32px; border-radius:16px; max-width:480px;">
     <div class="modal-header">
       <h2 class="text-xl font-bold">Withdraw Funds</h2>
       <button class="modal-close" onclick="closeWithdrawModal()">
         <i data-lucide="x" size="20"></i>
       </button>
     </div>
+    <p class="text-sm mb-4" style="color:var(--text-muted)">
+      Current balance: <strong style="color:var(--teal)">{{ "%.2f"|format(wallet.balance if wallet else 0) }} ETB</strong>
+    </p>
     <form id="withdrawForm" method="POST" action="/withdraw" class="space-y-4">
       <div>
         <label class="text-sm font-medium block mb-2" style="color:var(--text-muted)">Amount (ETB)</label>
-        <input type="number" name="amount" required placeholder="0.00" class="input-field" min="1" step="0.01">
+        <input type="number" name="amount" required placeholder="0.00" class="input-field" min="1" step="0.01" max="{{ wallet.balance if wallet else 0 }}">
       </div>
       <div>
-        <label class="text-sm font-medium block mb-2" style="color:var(--text-muted)">Reason (optional)</label>
+        <label class="text-sm font-medium block mb-2" style="color:var(--text-muted)">Reason</label>
         <textarea name="reason" placeholder="Tell us why you're withdrawing..." class="input-field" rows="3" maxlength="500"></textarea>
       </div>
+      <p class="text-xs" style="color:var(--text-muted)">Withdrawals are processed within 24 hours after admin approval.</p>
       <div class="flex gap-3 justify-end">
         <button type="button" class="btn-secondary" onclick="closeWithdrawModal()">Cancel</button>
         <button type="submit" class="btn-primary">Submit Request</button>
@@ -161,5 +247,8 @@ function openWithdrawModal() {
 function closeWithdrawModal() {
   document.getElementById('withdrawModal').classList.remove('active');
 }
+{% if flash_open_withdraw %}
+window.addEventListener('DOMContentLoaded', function() { openWithdrawModal(); });
+{% endif %}
 </script>
 {% endblock %}

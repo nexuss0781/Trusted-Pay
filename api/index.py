@@ -272,12 +272,32 @@ def dashboard(request: Request):
             .limit(5)
             .all()
         )
+        total_deposits = (
+            db.query(Transaction)
+            .filter(Transaction.user_id == user.id, Transaction.type == "deposit", Transaction.status == "approved")
+            .count()
+        )
+        total_withdrawals = (
+            db.query(Transaction)
+            .filter(Transaction.user_id == user.id, Transaction.type == "withdrawal", Transaction.status == "completed")
+            .count()
+        )
+        pending = (
+            db.query(Transaction)
+            .filter(Transaction.user_id == user.id, Transaction.status == "pending")
+            .count()
+        )
     finally:
         db.close()
     return templates.TemplateResponse(request, "dashboard.html", {
         "user": user,
         "wallet": wallet,
         "transactions": transactions,
+        "stats": {
+            "total_deposits": total_deposits,
+            "total_withdrawals": total_withdrawals,
+            "pending": pending,
+        },
         "telegram_link_msg": "",
     })
 
