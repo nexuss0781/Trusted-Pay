@@ -1,0 +1,1 @@
+TOKEN="test" BASE_URL="http://localhost:8000" uvicorn api.index:app --reload --port 8000
