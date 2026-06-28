@@ -76,18 +76,25 @@ def _ensure_admin_settings():
         db.close()
 
 
+_seed_log_path = os.path.join(os.path.dirname(__file__), "seed_log.txt")
+
 def _seed_admin_from_file():
     seed_dir = os.path.dirname(__file__)
     admin_path = os.path.join(seed_dir, "admin.txt")
     seed_py = os.path.join(seed_dir, "seed.py")
+    log_path = _seed_log_path
 
     if not os.path.exists(admin_path):
+        with open(log_path, "w") as f:
+            f.write("admin.txt not found — seeding skipped.\n")
         return
 
     with open(admin_path) as f:
         creds = f.read().strip()
 
     if ":" not in creds:
+        with open(log_path, "w") as f:
+            f.write("admin.txt: invalid format.\n")
         return
 
     email, password = creds.split(":", 1)
@@ -99,7 +106,10 @@ def _seed_admin_from_file():
     existing = get_user_by_email(email)
     if existing:
         os.remove(admin_path)
-        print(f"Admin {email} already exists — cleaned up admin.txt.")
+        msg = f"Admin {email} already exists — cleaned up admin.txt."
+        print(msg)
+        with open(log_path, "w") as f:
+            f.write(msg + "\n")
     else:
         db = SessionLocal()
         try:
@@ -116,15 +126,20 @@ def _seed_admin_from_file():
             db.add(wallet)
             db.commit()
             db.refresh(user)
-            print(f"Admin {email} created (id={user.id}).")
+            msg = f"Admin {email} created (id={user.id})."
+            print(msg)
         finally:
             db.close()
         os.remove(admin_path)
         print("admin.txt deleted after seeding.")
+        with open(log_path, "w") as f:
+            f.write(msg + "\nadmin.txt deleted after seeding.\n")
 
     if os.path.exists(seed_py):
         os.remove(seed_py)
         print("seed.py deleted after seeding.")
+        with open(log_path, "a") as f:
+            f.write("seed.py deleted after seeding.\n")
 
 
 def _get_user_from_cookie(request: Request) -> User | None:
@@ -972,6 +987,18 @@ async def get_trace():
         return {"using_old_code": has_app_process}
     except Exception:
         return {"using_old_code": None}
+
+
+@app.get("/api/seed-status")
+async def seed_status():
+    log_path = _seed_log_path
+    if os.path.exists(log_path):
+        with open(log_path) as f:
+            content = f.read()
+        return {"seeded": True, "log": content.strip().split("\n")}
+    from auth import get_user_by_email
+    admin = get_user_by_email("tadi0781@gmail.com")
+    return {"seeded": admin is not None, "log_file": os.path.exists(log_path), "admin_in_db": admin is not None}
 
 
 @app.get("/bot-dashboard", response_class=HTMLResponse)
