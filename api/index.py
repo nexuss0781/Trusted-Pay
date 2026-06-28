@@ -113,12 +113,12 @@ async def webhook(request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    return templates.TemplateResponse("landing.html", {"request": request})
+    return templates.TemplateResponse(request, "landing.html")
 
 
 @app.get("/signup", response_class=HTMLResponse)
 def signup_get(request: Request):
-    return templates.TemplateResponse("signup.html", {"request": request})
+    return templates.TemplateResponse(request, "signup.html")
 
 
 @app.post("/signup")
@@ -133,10 +133,10 @@ async def signup_post(
     email = email.strip().lower()
     phone = phone.strip()
     if len(full_name) < 2 or len(password) < 6:
-        return templates.TemplateResponse("signup.html", {"request": request, "error": "Name too short or password too weak."})
+        return templates.TemplateResponse(request, "signup.html", {"error": "Name too short or password too weak."})
     user = create_user(full_name, email, phone, password)
     if not user:
-        return templates.TemplateResponse("signup.html", {"request": request, "error": "An account with this email already exists."})
+        return templates.TemplateResponse(request, "signup.html", {"error": "An account with this email already exists."})
     token = create_session_token(user.id)
     log_action(user.id, "user.signup", {"email": email})
     resp = RedirectResponse(url="/dashboard", status_code=303)
@@ -146,7 +146,7 @@ async def signup_post(
 
 @app.get("/login", response_class=HTMLResponse)
 def login_get(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse(request, "login.html")
 
 
 @app.post("/login")
@@ -158,7 +158,7 @@ async def login_post(
     email = email.strip().lower()
     user = authenticate_user(email, password)
     if not user:
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid email or password."})
+        return templates.TemplateResponse(request, "login.html", {"error": "Invalid email or password."})
     token = create_session_token(user.id)
     log_action(user.id, "user.login", {"email": email})
     resp = RedirectResponse(url="/dashboard", status_code=303)
@@ -186,8 +186,7 @@ def dashboard(request: Request):
         )
     finally:
         db.close()
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "dashboard.html", {
         "user": user,
         "wallet": wallet,
         "transactions": transactions,
@@ -216,8 +215,7 @@ def deposit_get(request: Request):
     if not user:
         return RedirectResponse(url="/login")
     settings = _get_settings()
-    return templates.TemplateResponse("deposit.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "deposit.html", {
         "user": user,
         "base_phone": settings.base_phone_number if settings else "",
     })
@@ -229,25 +227,23 @@ async def deposit_post(request: Request, receipt_number: str = Form(...)):
     if not user:
         return RedirectResponse(url="/login")
     if user.is_frozen:
-        return templates.TemplateResponse("deposit.html", {
-            "request": request, "user": user,
+        return templates.TemplateResponse(request, "deposit.html", {
+            "user": user,
             "success": False, "message": "Your account is frozen. Cannot process deposits.",
         })
 
     receipt_number = receipt_number.strip()
     if not receipt_number:
-        return templates.TemplateResponse("deposit.html", {
-            "request": request,
-            "user": user,
+        return templates.TemplateResponse(request, "deposit.html", {
+                "user": user,
             "success": False,
             "message": "Receipt number is required.",
         })
 
     result = await verify_receipt(receipt_number)
     if not result["valid"]:
-        return templates.TemplateResponse("deposit.html", {
-            "request": request,
-            "user": user,
+        return templates.TemplateResponse(request, "deposit.html", {
+                "user": user,
             "success": False,
             "message": result.get("error", "Receipt verification failed."),
         })
@@ -285,9 +281,8 @@ async def deposit_post(request: Request, receipt_number: str = Form(...)):
             "receipt_no": receipt_number,
             "amount": str(amount),
         })
-        return templates.TemplateResponse("deposit.html", {
-            "request": request,
-            "user": user,
+        return templates.TemplateResponse(request, "deposit.html", {
+                "user": user,
             "success": True,
             "message": "Deposit request submitted successfully!",
             "txn": txn,
@@ -380,8 +375,7 @@ def status_list(request: Request, page: int = 1):
         total_pages = max(1, (total + per_page - 1) // per_page)
     finally:
         db.close()
-    return templates.TemplateResponse("status_list.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "status_list.html", {
         "user": user,
         "transactions": transactions,
         "page": page,
@@ -405,8 +399,7 @@ def status_detail(request: Request, txn_id: int):
             return RedirectResponse(url="/status")
     finally:
         db.close()
-    return templates.TemplateResponse("status_detail.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "status_detail.html", {
         "user": user,
         "txn": txn,
         "dispute_submitted": False,
@@ -530,8 +523,7 @@ def admin_dashboard(request: Request):
         )
     finally:
         db.close()
-    return templates.TemplateResponse("admin_dashboard.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "admin_dashboard.html", {
         "user": user,
         "pending_deposits": pending_deposits,
         "pending_withdrawals": pending_withdrawals,
@@ -565,8 +557,7 @@ def admin_deposits(request: Request):
         settings = db.query(AdminSettings).first()
     finally:
         db.close()
-    return templates.TemplateResponse("admin_deposits.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "admin_deposits.html", {
         "user": user,
         "pending_deposits": pending,
         "disputed_deposits": disputed,
@@ -653,8 +644,7 @@ def admin_withdrawals(request: Request):
         )
     finally:
         db.close()
-    return templates.TemplateResponse("admin_withdrawals.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "admin_withdrawals.html", {
         "user": user,
         "pending_withdrawals": pending,
     })
@@ -730,8 +720,7 @@ def admin_users(request: Request):
         user_wallets = {w.user_id: float(w.balance) for w in wallets}
     finally:
         db.close()
-    return templates.TemplateResponse("admin_users.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "admin_users.html", {
         "user": user,
         "users": users,
         "user_wallets": user_wallets,
@@ -864,8 +853,7 @@ def admin_settings_get(request: Request):
         )
     finally:
         db.close()
-    return templates.TemplateResponse("admin_settings.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "admin_settings.html", {
         "user": user,
         "settings": settings,
         "logs": logs,
@@ -961,8 +949,7 @@ async def bot_dashboard(request: Request):
     pending = wh.pending_update_count if wh else "-"
     last_err = wh.last_error_message or "None" if wh else "-"
 
-    return templates.TemplateResponse("bot_dashboard.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "bot_dashboard.html", {
         "token_status": token_status,
         "bot_name": bot_name,
         "bot_username": bot_username,

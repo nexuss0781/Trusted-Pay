@@ -1,0 +1,24 @@
+=== TRACE.TXT ERROR RESOLUTION ===
+
+Root Cause: Starlette 1.3.1 changed Jinja2Templates.TemplateResponse signature
+  OLD: TemplateResponse(name: str, context: dict)
+  NEW: TemplateResponse(request: Request, name: str, context: dict | None = None)
+
+The old code called templates.TemplateResponse("landing.html", {"request": request})
+which passed a dict as the `name` parameter, causing:
+  TypeError: unhashable type: 'dict'
+
+Fix applied: All 20 TemplateResponse calls updated to:
+  templates.TemplateResponse(request, "landing.html")
+The request param is now explicit; context["request"] is auto-set by Starlette.
+
+=== VERIFICATION ===
+Template rendering (all 13 templates): PASS
+Auth system (create + authenticate):     PASS
+Telebirr verification modules import:    PASS
+example.html path resolution:            PASS (found at api/example.html + root)
+
+Notes:
+- 4 templates show "undefined" in test (dashboard/deposit/status_list/detail)
+  because they need user/txn context — this is expected, production routes provide it.
+- The actual 500 error from trace.txt is fixed.
